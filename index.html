@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MSP SLA Calculator — Centrix Systems</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-logo">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="36" height="36" rx="8" fill="#0057FF"/>
+            <path d="M18 7L29 13V23L18 29L7 23V13L18 7Z" stroke="white" stroke-width="2" fill="none"/>
+            <circle cx="18" cy="18" r="4" fill="white"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">Centrix Systems</span>
+          <span class="brand-subtitle">MSP SLA Calculator</span>
+        </div>
+      </div>
+      <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="deadline">Deadline Calculator</button>
+        <button class="tab-btn" data-tab="compliance">Compliance Tracker</button>
+        <button class="tab-btn" data-tab="uptime">Uptime Calculator</button>
+        <button class="tab-btn" data-tab="tiers">SLA Tiers</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ===== TAB: DEADLINE CALCULATOR ===== -->
+    <section class="tab-content active" id="tab-deadline">
+      <div class="section-header">
+        <h2>SLA Deadline Calculator</h2>
+        <p>Enter a ticket's details to calculate response &amp; resolution deadlines and check for breaches.</p>
+      </div>
+
+      <div class="card-grid two-col">
+        <!-- Input Panel -->
+        <div class="card">
+          <h3 class="card-title">Ticket Details</h3>
+          <div class="form-group">
+            <label>Ticket ID / Reference</label>
+            <input type="text" id="ticketId" placeholder="e.g. TKT-00421" />
+          </div>
+          <div class="form-group">
+            <label>Priority Level</label>
+            <select id="ticketPriority">
+              <option value="p1">P1 — Critical</option>
+              <option value="p2">P2 — High</option>
+              <option value="p3" selected>P3 — Medium</option>
+              <option value="p4">P4 — Low</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Date &amp; Time Received</label>
+            <input type="datetime-local" id="ticketReceived" />
+          </div>
+          <div class="form-group">
+            <label>Support Coverage</label>
+            <select id="coverageType">
+              <option value="247">24/7 (All Hours)</option>
+              <option value="bh" selected>Business Hours (Mon–Fri, 08:00–18:00)</option>
+              <option value="extended">Extended (Mon–Sat, 07:00–20:00)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Date &amp; Time First Responded <span class="optional">(optional)</span></label>
+            <input type="datetime-local" id="ticketResponded" />
+          </div>
+          <div class="form-group">
+            <label>Date &amp; Time Resolved <span class="optional">(optional)</span></label>
+            <input type="datetime-local" id="ticketResolved" />
+          </div>
+          <button class="btn btn-primary" id="calcDeadlineBtn">Calculate SLA Deadlines</button>
+        </div>
+
+        <!-- Result Panel -->
+        <div class="card" id="deadlineResults">
+          <h3 class="card-title">SLA Results</h3>
+          <div class="placeholder-state">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="22" stroke="#CBD5E1" stroke-width="2"/><path d="M24 14v10l6 4" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round"/></svg>
+            <p>Fill in ticket details and click <strong>Calculate</strong> to see SLA deadlines.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Batch Ticket Tracker -->
+      <div class="card mt-24">
+        <div class="card-header-row">
+          <h3 class="card-title">Batch Ticket Log</h3>
+          <button class="btn btn-sm btn-secondary" id="clearLogBtn">Clear All</button>
+        </div>
+        <p class="card-desc">Calculated tickets are saved here for quick reference.</p>
+        <div id="ticketLog" class="ticket-log">
+          <div class="empty-log">No tickets logged yet.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== TAB: COMPLIANCE TRACKER ===== -->
+    <section class="tab-content" id="tab-compliance">
+      <div class="section-header">
+        <h2>SLA Compliance Tracker</h2>
+        <p>Calculate your SLA compliance rate for a reporting period.</p>
+      </div>
+
+      <div class="card-grid two-col">
+        <div class="card">
+          <h3 class="card-title">Period &amp; Ticket Counts</h3>
+          <div class="form-group">
+            <label>Reporting Period</label>
+            <div class="date-range">
+              <input type="date" id="periodStart" />
+              <span>to</span>
+              <input type="date" id="periodEnd" />
+            </div>
+          </div>
+
+          <div class="sla-input-table">
+            <div class="sla-input-row header-row">
+              <span>Priority</span>
+              <span>Total Tickets</span>
+              <span>Met SLA</span>
+              <span>Breached</span>
+            </div>
+            <div class="sla-input-row" data-prio="p1">
+              <span class="prio-badge p1">P1 Critical</span>
+              <input type="number" class="comp-total" min="0" value="0" placeholder="0" />
+              <input type="number" class="comp-met" min="0" value="0" placeholder="0" />
+              <span class="comp-breached">0</span>
+            </div>
+            <div class="sla-input-row" data-prio="p2">
+              <span class="prio-badge p2">P2 High</span>
+              <input type="number" class="comp-total" min="0" value="0" placeholder="0" />
+              <input type="number" class="comp-met" min="0" value="0" placeholder="0" />
+              <span class="comp-breached">0</span>
+            </div>
+            <div class="sla-input-row" data-prio="p3">
+              <span class="prio-badge p3">P3 Medium</span>
+              <input type="number" class="comp-total" min="0" value="0" placeholder="0" />
+              <input type="number" class="comp-met" min="0" value="0" placeholder="0" />
+              <span class="comp-breached">0</span>
+            </div>
+            <div class="sla-input-row" data-prio="p4">
+              <span class="prio-badge p4">P4 Low</span>
+              <input type="number" class="comp-total" min="0" value="0" placeholder="0" />
+              <input type="number" class="comp-met" min="0" value="0" placeholder="0" />
+              <span class="comp-breached">0</span>
+            </div>
+          </div>
+          <button class="btn btn-primary mt-16" id="calcComplianceBtn">Calculate Compliance</button>
+        </div>
+
+        <div class="card" id="complianceResults">
+          <h3 class="card-title">Compliance Report</h3>
+          <div class="placeholder-state">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="8" y="10" width="32" height="28" rx="3" stroke="#CBD5E1" stroke-width="2"/><path d="M15 20h18M15 26h12" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round"/></svg>
+            <p>Enter ticket counts and click <strong>Calculate Compliance</strong> to generate your report.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLA Target Reference -->
+      <div class="card mt-24">
+        <h3 class="card-title">Compliance Thresholds Reference</h3>
+        <div class="threshold-grid">
+          <div class="threshold-card">
+            <div class="prio-badge p1">P1 Critical</div>
+            <div class="threshold-target">Target: ≥ 99%</div>
+            <div class="threshold-desc">Mission-critical outages; maximum urgency</div>
+          </div>
+          <div class="threshold-card">
+            <div class="prio-badge p2">P2 High</div>
+            <div class="threshold-target">Target: ≥ 97%</div>
+            <div class="threshold-desc">Significant impact; urgent resolution needed</div>
+          </div>
+          <div class="threshold-card">
+            <div class="prio-badge p3">P3 Medium</div>
+            <div class="threshold-target">Target: ≥ 95%</div>
+            <div class="threshold-desc">Moderate impact; standard priority</div>
+          </div>
+          <div class="threshold-card">
+            <div class="prio-badge p4">P4 Low</div>
+            <div class="threshold-target">Target: ≥ 90%</div>
+            <div class="threshold-desc">Minimal impact; planned/routine work</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== TAB: UPTIME CALCULATOR ===== -->
+    <section class="tab-content" id="tab-uptime">
+      <div class="section-header">
+        <h2>Uptime &amp; Availability Calculator</h2>
+        <p>Determine allowed downtime for a given uptime SLA target, or calculate actual uptime from incident data.</p>
+      </div>
+
+      <div class="card-grid two-col">
+        <!-- Allowed Downtime -->
+        <div class="card">
+          <h3 class="card-title">Allowed Downtime from SLA %</h3>
+          <div class="form-group">
+            <label>SLA Uptime Target (%)</label>
+            <div class="input-with-suffix">
+              <input type="number" id="uptimeTarget" min="0" max="100" step="0.001" value="99.9" />
+              <span class="suffix">%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Measurement Period</label>
+            <select id="uptimePeriod">
+              <option value="day">Per Day</option>
+              <option value="week">Per Week</option>
+              <option value="month" selected>Per Month (30 days)</option>
+              <option value="quarter">Per Quarter (91 days)</option>
+              <option value="year">Per Year (365 days)</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="calcUptimeBtn">Calculate Allowed Downtime</button>
+          <div id="uptimeResult" class="uptime-result hidden"></div>
+        </div>
+
+        <!-- Actual Uptime from Incidents -->
+        <div class="card">
+          <h3 class="card-title">Actual Uptime from Incident Log</h3>
+          <div class="form-group">
+            <label>Measurement Period (hours)</label>
+            <input type="number" id="periodHours" min="1" value="720" placeholder="e.g. 720 for 30 days" />
+          </div>
+          <div class="form-group">
+            <label>Total Downtime (minutes)</label>
+            <input type="number" id="totalDowntime" min="0" value="0" placeholder="Total minutes of outage" />
+          </div>
+          <div class="form-group">
+            <label>Contracted SLA Target (%)</label>
+            <div class="input-with-suffix">
+              <input type="number" id="contractedSla" min="0" max="100" step="0.001" value="99.9" />
+              <span class="suffix">%</span>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="calcActualUptimeBtn">Calculate Actual Uptime</button>
+          <div id="actualUptimeResult" class="uptime-result hidden"></div>
+        </div>
+      </div>
+
+      <!-- Uptime Reference Table -->
+      <div class="card mt-24">
+        <h3 class="card-title">Standard Uptime SLA Reference Table</h3>
+        <div class="table-wrapper">
+          <table class="data-table" id="uptimeRefTable">
+            <thead>
+              <tr>
+                <th>SLA Target</th>
+                <th>Nines</th>
+                <th>Per Day</th>
+                <th>Per Week</th>
+                <th>Per Month</th>
+                <th>Per Quarter</th>
+                <th>Per Year</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== TAB: SLA TIERS ===== -->
+    <section class="tab-content" id="tab-tiers">
+      <div class="section-header">
+        <h2>SLA Tier Configuration</h2>
+        <p>Customise response and resolution targets for each priority tier. Changes apply across all calculators.</p>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">Priority Tiers</h3>
+        <p class="card-desc">Times are in hours. Business-hours tiers exclude weekends and non-working hours.</p>
+        <div class="table-wrapper">
+          <table class="data-table tiers-table">
+            <thead>
+              <tr>
+                <th>Priority</th>
+                <th>Label</th>
+                <th>Response Target (hrs)</th>
+                <th>Resolution Target (hrs)</th>
+                <th>Escalation Target (hrs)</th>
+                <th>Compliance Goal (%)</th>
+                <th>Colour</th>
+              </tr>
+            </thead>
+            <tbody id="tiersTableBody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+        <div class="tier-actions">
+          <button class="btn btn-primary" id="saveTiersBtn">Save Configuration</button>
+          <button class="btn btn-secondary" id="resetTiersBtn">Reset to Defaults</button>
+        </div>
+        <div id="tiersSaveMsg" class="save-msg hidden">Configuration saved successfully.</div>
+      </div>
+
+      <!-- Tier Definitions -->
+      <div class="card mt-24">
+        <h3 class="card-title">Standard Tier Definitions</h3>
+        <div class="tier-defs">
+          <div class="tier-def-item">
+            <div class="tier-def-badge p1">P1</div>
+            <div class="tier-def-text">
+              <strong>Critical</strong>
+              <p>Complete service outage, data loss risk, or security breach. All business operations halted. Immediate all-hands response required.</p>
+            </div>
+          </div>
+          <div class="tier-def-item">
+            <div class="tier-def-badge p2">P2</div>
+            <div class="tier-def-text">
+              <strong>High</strong>
+              <p>Major functionality impaired, significant user group affected, or partial service outage. No acceptable workaround available.</p>
+            </div>
+          </div>
+          <div class="tier-def-item">
+            <div class="tier-def-badge p3">P3</div>
+            <div class="tier-def-text">
+              <strong>Medium</strong>
+              <p>Non-critical functionality impaired with a workaround available. Limited number of users affected. Normal business operations continue.</p>
+            </div>
+          </div>
+          <div class="tier-def-item">
+            <div class="tier-def-badge p4">P4</div>
+            <div class="tier-def-text">
+              <strong>Low</strong>
+              <p>Minor cosmetic issues, feature requests, how-to questions, or general information requests. No business impact.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>&copy; 2026 Centrix Systems. MSP SLA Calculator v1.0</span>
+    <span>All SLA calculations are estimates. Verify with your contractual SLA terms.</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
