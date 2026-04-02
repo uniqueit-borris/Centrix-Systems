@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MSP SLA Calculator — Centrix Systems</title>
+  <style>
+/* ============================================================
+   Centrix Systems — MSP SLA Calculator Stylesheet
+   ============================================================ */
+
+/* ---------- Reset & Base ---------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue-600:   #0057FF;
+  --blue-500:   #1D6FFF;
+  --blue-100:   #E8F0FF;
+  --blue-50:    #F0F5FF;
+
+  --p1-color:   #DC2626;
+  --p1-bg:      #FEF2F2;
+  --p1-border:  #FECACA;
+
+  --p2-color:   #EA580C;
+  --p2-bg:      #FFF7ED;
+  --p2-border:  #FED7AA;
+
+  --p3-color:   #CA8A04;
+  --p3-bg:      #FEFCE8;
+  --p3-border:  #FEF08A;
+
+  --p4-color:   #16A34A;
+  --p4-bg:      #F0FDF4;
+  --p4-border:  #BBF7D0;
+
+  --gray-900: #0F172A;
+  --gray-700: #334155;
+  --gray-500: #64748B;
+  --gray-400: #94A3B8;
+  --gray-300: #CBD5E1;
+  --gray-200: #E2E8F0;
+  --gray-100: #F1F5F9;
+  --gray-50:  #F8FAFC;
+
+  --success-color:  #16A34A;
+  --success-bg:     #F0FDF4;
+  --warning-color:  #CA8A04;
+  --warning-bg:     #FEFCE8;
+  --danger-color:   #DC2626;
+  --danger-bg:      #FEF2F2;
+
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+
+  --shadow-sm:  0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:  0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.04);
+
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+html { font-size: 15px; }
+
+body {
+  font-family: var(--font);
+  background: var(--gray-100);
+  color: var(--gray-900);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Header ---------- */
+.site-header {
+  background: white;
+  border-bottom: 1px solid var(--gray-200);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-sm);
+}
+
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  height: 64px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.brand-name {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  letter-spacing: -.01em;
+}
+
+.brand-subtitle {
+  font-size: .75rem;
+  color: var(--gray-500);
+  font-weight: 500;
+}
+
+.tab-nav {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 16px;
+  font-size: .875rem;
+  font-weight: 500;
+  color: var(--gray-500);
+  border-radius: var(--radius-md);
+  transition: background .15s, color .15s;
+  white-space: nowrap;
+}
+
+.tab-btn:hover { background: var(--gray-100); color: var(--gray-700); }
+.tab-btn.active { background: var(--blue-100); color: var(--blue-600); font-weight: 600; }
+
+/* ---------- Main / Container ---------- */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  flex: 1;
+}
+
+/* ---------- Section / Tab ---------- */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.section-header {
+  margin-bottom: 24px;
+}
+.section-header h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  letter-spacing: -.02em;
+}
+.section-header p {
+  margin-top: 4px;
+  color: var(--gray-500);
+  font-size: .9rem;
+}
+
+/* ---------- Cards ---------- */
+.card {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-bottom: 16px;
+}
+
+.card-desc {
+  font-size: .875rem;
+  color: var(--gray-500);
+  margin-bottom: 16px;
+}
+
+.card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.card-grid {
+  display: grid;
+  gap: 20px;
+}
+.card-grid.two-col { grid-template-columns: 1fr 1fr; }
+
+.mt-16 { margin-top: 16px; }
+.mt-24 { margin-top: 24px; }
+
+/* ---------- Forms ---------- */
+.form-group {
+  margin-bottom: 14px;
+}
+
+.form-group label {
+  display: block;
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.optional {
+  font-weight: 400;
+  text-transform: none;
+  font-size: .75rem;
+  color: var(--gray-400);
+}
+
+input[type="text"],
+input[type="number"],
+input[type="datetime-local"],
+input[type="date"],
+select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-md);
+  font-size: .875rem;
+  color: var(--gray-900);
+  background: white;
+  transition: border-color .15s, box-shadow .15s;
+  font-family: var(--font);
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--blue-500);
+  box-shadow: 0 0 0 3px rgba(0,87,255,.12);
+}
+
+.input-with-suffix {
+  display: flex;
+  align-items: stretch;
+}
+
+.input-with-suffix input {
+  border-right: none;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+.input-with-suffix .suffix {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-300);
+  border-left: none;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  font-size: .875rem;
+  color: var(--gray-500);
+  font-weight: 500;
+}
+
+.date-range {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.date-range input { flex: 1; }
+.date-range span { color: var(--gray-400); font-size: .8rem; white-space: nowrap; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 20px;
+  font-size: .875rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background .15s, box-shadow .15s, transform .1s;
+  font-family: var(--font);
+  white-space: nowrap;
+}
+.btn:active { transform: scale(.98); }
+
+.btn-primary {
+  background: var(--blue-600);
+  color: white;
+  border-color: var(--blue-600);
+}
+.btn-primary:hover { background: #0049d9; border-color: #0049d9; }
+
+.btn-secondary {
+  background: white;
+  color: var(--gray-700);
+  border-color: var(--gray-300);
+}
+.btn-secondary:hover { background: var(--gray-100); }
+
+.btn-sm {
+  padding: 6px 14px;
+  font-size: .8rem;
+}
+
+/* ---------- Priority Badges ---------- */
+.prio-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: .78rem;
+  font-weight: 700;
+  border: 1px solid;
+}
+.prio-badge.p1 { color: var(--p1-color); background: var(--p1-bg); border-color: var(--p1-border); }
+.prio-badge.p2 { color: var(--p2-color); background: var(--p2-bg); border-color: var(--p2-border); }
+.prio-badge.p3 { color: var(--p3-color); background: var(--p3-bg); border-color: var(--p3-border); }
+.prio-badge.p4 { color: var(--p4-color); background: var(--p4-bg); border-color: var(--p4-border); }
+
+/* ---------- Placeholder State ---------- */
+.placeholder-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  color: var(--gray-400);
+  text-align: center;
+}
+.placeholder-state p { font-size: .875rem; max-width: 260px; }
+.placeholder-state strong { color: var(--gray-600); }
+
+/* ---------- Deadline Results ---------- */
+.result-block {
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.result-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.result-block-header .label {
+  font-size: .78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--gray-500);
+}
+
+.result-block-body {
+  padding: 12px 16px;
+}
+
+.result-deadline {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.result-meta {
+  font-size: .8rem;
+  color: var(--gray-500);
+  margin-top: 3px;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: .75rem;
+  font-weight: 700;
+  border: 1px solid;
+}
+.status-pill.met    { color: var(--success-color); background: var(--success-bg); border-color: #BBF7D0; }
+.status-pill.breach { color: var(--danger-color);  background: var(--danger-bg);  border-color: #FECACA; }
+.status-pill.pending { color: var(--gray-500); background: var(--gray-100); border-color: var(--gray-300); }
+
+.dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.dot.met    { background: var(--success-color); }
+.dot.breach { background: var(--danger-color); }
+.dot.pending { background: var(--gray-400); }
+
+.result-ticket-id {
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--blue-600);
+  background: var(--blue-50);
+  border: 1px solid var(--blue-100);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  margin-bottom: 12px;
+  display: inline-block;
+}
+
+.result-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--gray-100);
+  font-size: .875rem;
+}
+.result-summary-row:last-child { border-bottom: none; }
+.result-summary-row .key { color: var(--gray-500); }
+.result-summary-row .val { font-weight: 600; color: var(--gray-900); }
+
+/* ---------- Ticket Log ---------- */
+.ticket-log {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.empty-log {
+  text-align: center;
+  color: var(--gray-400);
+  font-size: .875rem;
+  padding: 32px;
+}
+
+.log-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray-200);
+  margin-bottom: 8px;
+  font-size: .85rem;
+  background: var(--gray-50);
+}
+
+.log-item .log-id {
+  font-weight: 700;
+  color: var(--blue-600);
+  min-width: 90px;
+}
+
+.log-item .log-info { color: var(--gray-600); }
+.log-item .log-deadline { color: var(--gray-700); font-weight: 500; text-align: right; }
+
+/* ---------- Compliance ---------- */
+.sla-input-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-bottom: 0;
+}
+
+.sla-input-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 1fr 80px;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.sla-input-row.header-row {
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--gray-500);
+  padding-bottom: 8px;
+}
+
+.sla-input-row input {
+  padding: 6px 10px;
+  font-size: .85rem;
+}
+
+.comp-breached {
+  font-weight: 700;
+  color: var(--danger-color);
+  text-align: center;
+}
+
+/* Compliance Results */
+.compliance-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.compliance-card {
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  text-align: center;
+}
+
+.compliance-card .prio-badge { margin-bottom: 8px; }
+.compliance-card .compliance-pct {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -.03em;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.compliance-card .compliance-label { font-size: .75rem; color: var(--gray-500); }
+.compliance-card.above { border-color: #BBF7D0; background: var(--success-bg); }
+.compliance-card.below { border-color: #FECACA; background: var(--danger-bg); }
+.compliance-card.above .compliance-pct { color: var(--success-color); }
+.compliance-card.below .compliance-pct { color: var(--danger-color); }
+
+.overall-compliance {
+  border: 2px solid var(--blue-600);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: center;
+  background: var(--blue-50);
+  margin-bottom: 16px;
+}
+.overall-compliance .label {
+  font-size: .78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--blue-600);
+  margin-bottom: 6px;
+}
+.overall-compliance .pct {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--blue-600);
+  letter-spacing: -.04em;
+  line-height: 1;
+}
+.overall-compliance .sub {
+  font-size: .8rem;
+  color: var(--gray-500);
+  margin-top: 4px;
+}
+
+.threshold-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.threshold-card {
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  text-align: center;
+}
+.threshold-card .prio-badge { margin-bottom: 8px; }
+.threshold-target { font-weight: 700; font-size: .9rem; margin-bottom: 4px; }
+.threshold-desc { font-size: .75rem; color: var(--gray-500); line-height: 1.4; }
+
+/* ---------- Uptime ---------- */
+.uptime-result {
+  margin-top: 16px;
+  border-radius: var(--radius-md);
+  padding: 16px;
+  border: 1px solid;
+}
+.uptime-result.hidden { display: none; }
+.uptime-result.ok { background: var(--success-bg); border-color: #BBF7D0; color: var(--success-color); }
+.uptime-result.warn { background: var(--warning-bg); border-color: #FEF08A; color: var(--warning-color); }
+.uptime-result.fail { background: var(--danger-bg); border-color: #FECACA; color: var(--danger-color); }
+.uptime-result .uptime-big {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -.03em;
+  line-height: 1.1;
+}
+.uptime-result .uptime-label { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+.uptime-result .uptime-details { font-size: .8rem; margin-top: 8px; opacity: .85; }
+.uptime-result .uptime-details div { margin-top: 3px; }
+
+/* ---------- Tables ---------- */
+.table-wrapper { overflow-x: auto; }
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .875rem;
+}
+
+.data-table th {
+  background: var(--gray-50);
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--gray-500);
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 2px solid var(--gray-200);
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--gray-100);
+  color: var(--gray-700);
+  vertical-align: middle;
+}
+
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--gray-50); }
+
+.data-table td input {
+  width: 80px;
+  padding: 5px 8px;
+  font-size: .85rem;
+}
+
+.data-table td input[type="color"] {
+  width: 44px;
+  height: 32px;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+/* ---------- Tier Config ---------- */
+.tier-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.save-msg {
+  margin-top: 12px;
+  padding: 10px 16px;
+  background: var(--success-bg);
+  border: 1px solid #BBF7D0;
+  border-radius: var(--radius-md);
+  color: var(--success-color);
+  font-size: .875rem;
+  font-weight: 600;
+}
+.save-msg.hidden { display: none; }
+
+.tier-defs {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tier-def-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 14px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  background: var(--gray-50);
+}
+
+.tier-def-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: .9rem;
+  flex-shrink: 0;
+}
+.tier-def-badge.p1 { background: var(--p1-bg); color: var(--p1-color); border: 2px solid var(--p1-border); }
+.tier-def-badge.p2 { background: var(--p2-bg); color: var(--p2-color); border: 2px solid var(--p2-border); }
+.tier-def-badge.p3 { background: var(--p3-bg); color: var(--p3-color); border: 2px solid var(--p3-border); }
+.tier-def-badge.p4 { background: var(--p4-bg); color: var(--p4-color); border: 2px solid var(--p4-border); }
+
+.tier-def-text strong { font-size: .9rem; display: block; margin-bottom: 4px; }
+.tier-def-text p { font-size: .83rem; color: var(--gray-600); line-height: 1.5; }
+
+/* ---------- Footer ---------- */
+.site-footer {
+  background: white;
+  border-top: 1px solid var(--gray-200);
+  padding: 14px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: .78rem;
+  color: var(--gray-400);
+}
+
+/* ---------- Utilities ---------- */
+.hidden { display: none !important; }
+.text-red   { color: var(--danger-color); }
+.text-green { color: var(--success-color); }
+.text-amber { color: var(--warning-color); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .card-grid.two-col { grid-template-columns: 1fr; }
+  .threshold-grid { grid-template-columns: 1fr 1fr; }
+  .compliance-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 640px) {
+  .header-inner {
+    flex-direction: column;
+    height: auto;
+    padding: 12px 16px;
+    gap: 10px;
+  }
+  .tab-nav { flex-wrap: wrap; }
+  .container { padding: 16px; }
+  .threshold-grid { grid-template-columns: 1fr 1fr; }
+  .compliance-grid { grid-template-columns: 1fr; }
+  .sla-input-row { grid-template-columns: 110px 1fr 1fr 60px; }
+  .site-footer { flex-direction: column; gap: 4px; text-align: center; }
+  .log-item { grid-template-columns: 1fr 1fr; }
+}
+
+</style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-logo">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="36" height="36" rx="8" fill="#0057FF"/>
+            <path d="M18 7L29 13V23L18 29L7 23V13L18 7Z" stroke="white" stroke-width="2" fill="none"/>
+            <circle cx="18" cy="18" r="4" fill="white"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">Centrix Systems</span>
+          <span class="brand-subtitle">MSP SLA Calculator</span>
+        </div>
+      </div>
+      <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="deadline">Deadline Calculator</button>
+        <button class="tab-btn" data-tab="compliance">Compliance Tracker</button>
+        <button class="tab-btn" data-tab="uptime">Uptime Calculator</button>
+        <button class="tab-btn" data-tab="tiers">SLA Tiers</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ===== TAB: DEADLINE CALCULATOR ===== -->
+    <section class="tab-content active" id="tab-deadline">
+      <div class="section-header">
+        <h2>SLA Deadline Calculator</h2>
+        <p>Enter a ticket's details to calculate response &amp; resolution deadlines and check for breaches.</p>
+      </div>
+
+      <div class="card-grid two-col">
+        <!-- Input Panel -->
+        <div class="card">
+          <h3 class="card-title">Ticket Details</h3>
+          <div class="form-group">
+            <label>Ticket ID / Reference</label>
+            <input type="text" id="ticketId" placeholder="e.g. TKT-00421" />
+          </div>
+          <div class="form-group">
+            <label>Priority Level</label>
+            <select id="ticketPriority">
+              <option value="p1">P1 — Critical</option>
+              <option value="p2">P2 — High</option>
+              <option value="p3" selected>P3 — Medium</option>
+              <option value="p4">P4 — Low</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Date &amp; Time Received</label>
+            <input type="datetime-local" id="ticketReceived" />
+          </div>
+          <div class="form-group">
+            <label>Support Coverage</label>
+            <select id="coverageType">
+              <option value="247">24/7 (All Hours)</option>
+              <option value="bh" selected>Business Hours (Mon–Fri, 08:00–18:00)</option>
+              <option value="extended">Extended (Mon–Sat, 07:00–20:00)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Date &amp; Time First Responded <span class="optional">(optional)</span></label>
+            <input type="datetime-local" id="ticketResponded" />
+          </div>
+          <div class="form-group">
+            <label>Date &amp; Time Resolved <span class="optional">(optional)</span></label>
+            <input type="datetime-local" id="ticketResolved" />
+          </div>
+          <button class="btn btn-primary" id="calcDeadlineBtn">Calculate SLA Deadlines</button>
+        </div>
+
+        <!-- Result Panel -->
+        <div class="card" id="deadlineResults">
+          <h3 class="card-title">SLA Results</h3>
+          <div class="placeholder-state">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="22" stroke="#CBD5E1" stroke-width="2"/><path d="M24 14v10l6 4" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round"/></svg>
+            <p>Fill in ticket details and click <strong>Calculate</strong> to see SLA deadlines.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Batch Ticket Tracker -->
+      <div class="card mt-24">
+        <div class="card-header-row">
+          <h3 class="card-title">Batch Ticket Log</h3>
+          <button class="btn btn-sm btn-secondary" id="clearLogBtn">Clear All</button>
+        </div>
+        <p class="card-desc">Calculated tickets are saved here for quick reference.</p>
+        <div id="ticketLog" class="ticket-log">
+          <div class="empty-log">No tickets logged yet.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== TAB: COMPLIANCE TRACKER ===== -->
+    <section class="tab-content" id="tab-compliance">
+      <div class="section-header">
+        <h2>SLA Compliance Tracker</h2>
+        <p>Calculate your SLA compliance rate for a reporting period.</p>
+      </div>
+
+      <div class="card-grid two-col">
+        <div class="card">
+          <h3 class="card-title">Period &amp; Ticket Counts</h3>
+          <div class="form-group">
+            <label>Reporting Period</label>
+            <div class="date-range">
+              <input type="date" id="periodStart" />
+              <span>to</span>
+              <input type="date" id="periodEnd" />
+            </div>
+          </div>
+
+          <div class="sla-input-table">
+            <div class="sla-input-row header-row">
+              <span>Priority</span>
+              <span>Total Tickets</span>
+              <span>Met SLA</span>
+              <span>Breached</span>
+            </div>
+            <div class="sla-input-row" data-prio="p1">
+              <span class="prio-badge p1">P1 Critical</span>
+              <input type="number" class="comp-total" min="0" value="0" placeholder="0" />
+              <input type="number" class="comp-met" min="0" value="0" placeholder="0" />
+              <span class="comp-breached">0</span>
+            </div>
+            <div class="sla-input-row" data-prio="p2">
+              <span class="prio-badge p2">P2 High</span>
+              <input type="number" class="comp-total" min="0" value="0" placeholder="0" />
+              <input type="number" class="comp-met" min="0" value="0" placeholder="0" />
+              <span class="comp-breached">0</span>
+            </div>
+            <div class="sla-input-row" data-prio="p3">
+              <span class="prio-badge p3">P3 Medium</span>
+              <input type="number" class="comp-total" min="0" value="0" placeholder="0" />
+              <input type="number" class="comp-met" min="0" value="0" placeholder="0" />
+              <span class="comp-breached">0</span>
+            </div>
+            <div class="sla-input-row" data-prio="p4">
+              <span class="prio-badge p4">P4 Low</span>
+              <input type="number" class="comp-total" min="0" value="0" placeholder="0" />
+              <input type="number" class="comp-met" min="0" value="0" placeholder="0" />
+              <span class="comp-breached">0</span>
+            </div>
+          </div>
+          <button class="btn btn-primary mt-16" id="calcComplianceBtn">Calculate Compliance</button>
+        </div>
+
+        <div class="card" id="complianceResults">
+          <h3 class="card-title">Compliance Report</h3>
+          <div class="placeholder-state">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="8" y="10" width="32" height="28" rx="3" stroke="#CBD5E1" stroke-width="2"/><path d="M15 20h18M15 26h12" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round"/></svg>
+            <p>Enter ticket counts and click <strong>Calculate Compliance</strong> to generate your report.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLA Target Reference -->
+      <div class="card mt-24">
+        <h3 class="card-title">Compliance Thresholds Reference</h3>
+        <div class="threshold-grid">
+          <div class="threshold-card">
+            <div class="prio-badge p1">P1 Critical</div>
+            <div class="threshold-target">Target: ≥ 99%</div>
+            <div class="threshold-desc">Mission-critical outages; maximum urgency</div>
+          </div>
+          <div class="threshold-card">
+            <div class="prio-badge p2">P2 High</div>
+            <div class="threshold-target">Target: ≥ 97%</div>
+            <div class="threshold-desc">Significant impact; urgent resolution needed</div>
+          </div>
+          <div class="threshold-card">
+            <div class="prio-badge p3">P3 Medium</div>
+            <div class="threshold-target">Target: ≥ 95%</div>
+            <div class="threshold-desc">Moderate impact; standard priority</div>
+          </div>
+          <div class="threshold-card">
+            <div class="prio-badge p4">P4 Low</div>
+            <div class="threshold-target">Target: ≥ 90%</div>
+            <div class="threshold-desc">Minimal impact; planned/routine work</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== TAB: UPTIME CALCULATOR ===== -->
+    <section class="tab-content" id="tab-uptime">
+      <div class="section-header">
+        <h2>Uptime &amp; Availability Calculator</h2>
+        <p>Determine allowed downtime for a given uptime SLA target, or calculate actual uptime from incident data.</p>
+      </div>
+
+      <div class="card-grid two-col">
+        <!-- Allowed Downtime -->
+        <div class="card">
+          <h3 class="card-title">Allowed Downtime from SLA %</h3>
+          <div class="form-group">
+            <label>SLA Uptime Target (%)</label>
+            <div class="input-with-suffix">
+              <input type="number" id="uptimeTarget" min="0" max="100" step="0.001" value="99.9" />
+              <span class="suffix">%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Measurement Period</label>
+            <select id="uptimePeriod">
+              <option value="day">Per Day</option>
+              <option value="week">Per Week</option>
+              <option value="month" selected>Per Month (30 days)</option>
+              <option value="quarter">Per Quarter (91 days)</option>
+              <option value="year">Per Year (365 days)</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="calcUptimeBtn">Calculate Allowed Downtime</button>
+          <div id="uptimeResult" class="uptime-result hidden"></div>
+        </div>
+
+        <!-- Actual Uptime from Incidents -->
+        <div class="card">
+          <h3 class="card-title">Actual Uptime from Incident Log</h3>
+          <div class="form-group">
+            <label>Measurement Period (hours)</label>
+            <input type="number" id="periodHours" min="1" value="720" placeholder="e.g. 720 for 30 days" />
+          </div>
+          <div class="form-group">
+            <label>Total Downtime (minutes)</label>
+            <input type="number" id="totalDowntime" min="0" value="0" placeholder="Total minutes of outage" />
+          </div>
+          <div class="form-group">
+            <label>Contracted SLA Target (%)</label>
+            <div class="input-with-suffix">
+              <input type="number" id="contractedSla" min="0" max="100" step="0.001" value="99.9" />
+              <span class="suffix">%</span>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="calcActualUptimeBtn">Calculate Actual Uptime</button>
+          <div id="actualUptimeResult" class="uptime-result hidden"></div>
+        </div>
+      </div>
+
+      <!-- Uptime Reference Table -->
+      <div class="card mt-24">
+        <h3 class="card-title">Standard Uptime SLA Reference Table</h3>
+        <div class="table-wrapper">
+          <table class="data-table" id="uptimeRefTable">
+            <thead>
+              <tr>
+                <th>SLA Target</th>
+                <th>Nines</th>
+                <th>Per Day</th>
+                <th>Per Week</th>
+                <th>Per Month</th>
+                <th>Per Quarter</th>
+                <th>Per Year</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== TAB: SLA TIERS ===== -->
+    <section class="tab-content" id="tab-tiers">
+      <div class="section-header">
+        <h2>SLA Tier Configuration</h2>
+        <p>Customise response and resolution targets for each priority tier. Changes apply across all calculators.</p>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">Priority Tiers</h3>
+        <p class="card-desc">Times are in hours. Business-hours tiers exclude weekends and non-working hours.</p>
+        <div class="table-wrapper">
+          <table class="data-table tiers-table">
+            <thead>
+              <tr>
+                <th>Priority</th>
+                <th>Label</th>
+                <th>Response Target (hrs)</th>
+                <th>Resolution Target (hrs)</th>
+                <th>Escalation Target (hrs)</th>
+                <th>Compliance Goal (%)</th>
+                <th>Colour</th>
+              </tr>
+            </thead>
+            <tbody id="tiersTableBody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+        <div class="tier-actions">
+          <button class="btn btn-primary" id="saveTiersBtn">Save Configuration</button>
+          <button class="btn btn-secondary" id="resetTiersBtn">Reset to Defaults</button>
+        </div>
+        <div id="tiersSaveMsg" class="save-msg hidden">Configuration saved successfully.</div>
+      </div>
+
+      <!-- Tier Definitions -->
+      <div class="card mt-24">
+        <h3 class="card-title">Standard Tier Definitions</h3>
+        <div class="tier-defs">
+          <div class="tier-def-item">
+            <div class="tier-def-badge p1">P1</div>
+            <div class="tier-def-text">
+              <strong>Critical</strong>
+              <p>Complete service outage, data loss risk, or security breach. All business operations halted. Immediate all-hands response required.</p>
+            </div>
+          </div>
+          <div class="tier-def-item">
+            <div class="tier-def-badge p2">P2</div>
+            <div class="tier-def-text">
+              <strong>High</strong>
+              <p>Major functionality impaired, significant user group affected, or partial service outage. No acceptable workaround available.</p>
+            </div>
+          </div>
+          <div class="tier-def-item">
+            <div class="tier-def-badge p3">P3</div>
+            <div class="tier-def-text">
+              <strong>Medium</strong>
+              <p>Non-critical functionality impaired with a workaround available. Limited number of users affected. Normal business operations continue.</p>
+            </div>
+          </div>
+          <div class="tier-def-item">
+            <div class="tier-def-badge p4">P4</div>
+            <div class="tier-def-text">
+              <strong>Low</strong>
+              <p>Minor cosmetic issues, feature requests, how-to questions, or general information requests. No business impact.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <span>&copy; 2026 Centrix Systems. MSP SLA Calculator v1.0</span>
+    <span>All SLA calculations are estimates. Verify with your contractual SLA terms.</span>
+  </footer>
+
+  <script>
+/* ============================================================
+   Centrix Systems — MSP SLA Calculator
+   app.js — All application logic
+   ============================================================ */
+
+'use strict';
+
+/* ────────────────────────────────────────────────────────────
+   DEFAULT SLA TIER CONFIGURATION
+   Response / Resolution / Escalation times in hours
+   ──────────────────────────────────────────────────────────── */
+const DEFAULT_TIERS = [
+  { id: 'p1', label: 'Critical',  response: 0.25,  resolution: 4,   escalation: 1,   complianceGoal: 99, color: '#DC2626' },
+  { id: 'p2', label: 'High',      response: 1,     resolution: 8,   escalation: 4,   complianceGoal: 97, color: '#EA580C' },
+  { id: 'p3', label: 'Medium',    response: 4,     resolution: 24,  escalation: 12,  complianceGoal: 95, color: '#CA8A04' },
+  { id: 'p4', label: 'Low',       response: 8,     resolution: 72,  escalation: 48,  complianceGoal: 90, color: '#16A34A' },
+];
+
+/* ────────────────────────────────────────────────────────────
+   BUSINESS HOURS DEFINITIONS
+   ──────────────────────────────────────────────────────────── */
+const COVERAGE = {
+  '247':      { start: 0,  end: 24, days: [0,1,2,3,4,5,6] },   // all hours, all days
+  'bh':       { start: 8,  end: 18, days: [1,2,3,4,5] },        // Mon–Fri 08:00–18:00
+  'extended': { start: 7,  end: 20, days: [1,2,3,4,5,6] },      // Mon–Sat 07:00–20:00
+};
+
+/* ────────────────────────────────────────────────────────────
+   STATE
+   ──────────────────────────────────────────────────────────── */
+let tiers = loadTiers();
+let ticketLog = [];
+
+/* ────────────────────────────────────────────────────────────
+   STORAGE HELPERS
+   ──────────────────────────────────────────────────────────── */
+function loadTiers() {
+  try {
+    const stored = localStorage.getItem('centrix_tiers');
+    if (stored) return JSON.parse(stored);
+  } catch (_) {}
+  return DEFAULT_TIERS.map(t => ({ ...t }));
+}
+
+function saveTiers() {
+  try { localStorage.setItem('centrix_tiers', JSON.stringify(tiers)); } catch (_) {}
+}
+
+/* ────────────────────────────────────────────────────────────
+   BUSINESS HOURS CALCULATOR
+   Adds `hours` business-hours to a starting Date and returns
+   the resulting Date.
+   ──────────────────────────────────────────────────────────── */
+function addBusinessHours(start, hours, coverageKey) {
+  const cov = COVERAGE[coverageKey] || COVERAGE['bh'];
+  const result = new Date(start);
+
+  let remainingMins = Math.round(hours * 60);
+
+  // Advance to the next business moment if currently outside hours
+  result.setTime(snapToBusinessHours(result, cov).getTime());
+
+  while (remainingMins > 0) {
+    const day = result.getDay();
+    if (!cov.days.includes(day)) {
+      // Skip to start of next valid day
+      result.setDate(result.getDate() + 1);
+      result.setHours(cov.start, 0, 0, 0);
+      continue;
+    }
+
+    const endOfDay = new Date(result);
+    endOfDay.setHours(cov.end, 0, 0, 0);
+
+    const minsUntilEOD = Math.max(0, (endOfDay - result) / 60000);
+
+    if (remainingMins <= minsUntilEOD) {
+      result.setTime(result.getTime() + remainingMins * 60000);
+      remainingMins = 0;
+    } else {
+      remainingMins -= minsUntilEOD;
+      // Move to next valid business day start
+      result.setDate(result.getDate() + 1);
+      result.setHours(cov.start, 0, 0, 0);
+      // Skip non-working days
+      while (!cov.days.includes(result.getDay())) {
+        result.setDate(result.getDate() + 1);
+      }
+    }
+  }
+  return result;
+}
+
+function snapToBusinessHours(date, cov) {
+  const d = new Date(date);
+  // Find next valid day
+  let safety = 0;
+  while (!cov.days.includes(d.getDay()) && safety++ < 8) {
+    d.setDate(d.getDate() + 1);
+    d.setHours(cov.start, 0, 0, 0);
+  }
+  const h = d.getHours() + d.getMinutes() / 60;
+  if (h < cov.start) { d.setHours(cov.start, 0, 0, 0); }
+  else if (h >= cov.end) {
+    d.setDate(d.getDate() + 1);
+    d.setHours(cov.start, 0, 0, 0);
+    // Skip non-working days
+    while (!cov.days.includes(d.getDay())) {
+      d.setDate(d.getDate() + 1);
+    }
+  }
+  return d;
+}
+
+/* Elapsed business minutes between two dates */
+function elapsedBusinessMinutes(from, to, coverageKey) {
+  if (to <= from) return 0;
+  const cov = COVERAGE[coverageKey] || COVERAGE['bh'];
+  let cursor = new Date(from);
+  cursor.setTime(snapToBusinessHours(cursor, cov).getTime());
+  let mins = 0;
+  const MAX_DAYS = 400;
+  let d = 0;
+  while (cursor < to && d++ < MAX_DAYS) {
+    const day = cursor.getDay();
+    if (!cov.days.includes(day)) {
+      cursor.setDate(cursor.getDate() + 1);
+      cursor.setHours(cov.start, 0, 0, 0);
+      continue;
+    }
+    const endOfDay = new Date(cursor);
+    endOfDay.setHours(cov.end, 0, 0, 0);
+    const segEnd = to < endOfDay ? to : endOfDay;
+    mins += Math.max(0, (segEnd - cursor) / 60000);
+    cursor.setDate(cursor.getDate() + 1);
+    cursor.setHours(cov.start, 0, 0, 0);
+    while (!cov.days.includes(cursor.getDay())) {
+      cursor.setDate(cursor.getDate() + 1);
+    }
+  }
+  return mins;
+}
+
+/* ────────────────────────────────────────────────────────────
+   FORMATTING HELPERS
+   ──────────────────────────────────────────────────────────── */
+const FMT_DATE = new Intl.DateTimeFormat('en-GB', {
+  day: '2-digit', month: 'short', year: 'numeric',
+  hour: '2-digit', minute: '2-digit', hour12: false,
+});
+
+function fmtDate(date) { return FMT_DATE.format(date); }
+
+function fmtDuration(minutes) {
+  if (minutes < 60) return `${Math.round(minutes)} min`;
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+  if (h < 24) return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  const days = Math.floor(h / 24);
+  const hrs  = h % 24;
+  return hrs > 0 ? `${days}d ${hrs}h` : `${days}d`;
+}
+
+function fmtDowntime(minutes) {
+  if (minutes < 1)   return `${(minutes * 60).toFixed(1)} sec`;
+  if (minutes < 60)  return `${minutes.toFixed(1)} min`;
+  const h = minutes / 60;
+  if (h < 24)        return `${h.toFixed(2)} hrs`;
+  const d = h / 24;
+  if (d < 30)        return `${d.toFixed(2)} days`;
+  return `${(d / 30).toFixed(2)} months`;
+}
+
+/* ────────────────────────────────────────────────────────────
+   TAB NAVIGATION
+   ──────────────────────────────────────────────────────────── */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ────────────────────────────────────────────────────────────
+   SET DEFAULT DATETIME (now) on the deadline form
+   ──────────────────────────────────────────────────────────── */
+(function setDefaultDateTime() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const local = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  document.getElementById('ticketReceived').value = local;
+})();
+
+/* ────────────────────────────────────────────────────────────
+   DEADLINE CALCULATOR
+   ──────────────────────────────────────────────────────────── */
+document.getElementById('calcDeadlineBtn').addEventListener('click', calculateDeadline);
+
+function calculateDeadline() {
+  const ticketId     = document.getElementById('ticketId').value.trim() || 'TKT-XXXX';
+  const priorityId   = document.getElementById('ticketPriority').value;
+  const receivedVal  = document.getElementById('ticketReceived').value;
+  const coverageKey  = document.getElementById('coverageType').value;
+  const respondedVal = document.getElementById('ticketResponded').value;
+  const resolvedVal  = document.getElementById('ticketResolved').value;
+
+  if (!receivedVal) {
+    showResultError('deadlineResults', 'Please enter the date and time the ticket was received.');
+    return;
+  }
+
+  const tier     = tiers.find(t => t.id === priorityId);
+  const received = new Date(receivedVal);
+  const responseDeadline   = addBusinessHours(received, tier.response,   coverageKey);
+  const resolutionDeadline = addBusinessHours(received, tier.resolution,  coverageKey);
+  const escalationDeadline = addBusinessHours(received, tier.escalation,  coverageKey);
+
+  // Status assessment
+  const responded = respondedVal ? new Date(respondedVal) : null;
+  const resolved  = resolvedVal  ? new Date(resolvedVal)  : null;
+  const now       = new Date();
+
+  function getStatus(deadline, actual) {
+    if (actual) return actual <= deadline ? 'met' : 'breach';
+    return now > deadline ? 'breach' : 'pending';
+  }
+
+  const responseStatus   = getStatus(responseDeadline,   responded);
+  const resolutionStatus = getStatus(resolutionDeadline, resolved);
+
+  // Elapsed times
+  let responseElapsed   = responded ? elapsedBusinessMinutes(received, responded,  coverageKey) : null;
+  let resolutionElapsed = resolved  ? elapsedBusinessMinutes(received, resolved,   coverageKey) : null;
+
+  // Build result HTML
+  const container = document.getElementById('deadlineResults');
+  container.innerHTML = `
+    <h3 class="card-title">SLA Results</h3>
+    <div class="result-ticket-id">${escHtml(ticketId)}</div>
+
+    <div class="result-summary-row">
+      <span class="key">Priority</span>
+      <span class="val"><span class="prio-badge ${priorityId}">P${priorityId[1]} — ${tier.label}</span></span>
+    </div>
+    <div class="result-summary-row">
+      <span class="key">Received</span>
+      <span class="val">${fmtDate(received)}</span>
+    </div>
+    <div class="result-summary-row">
+      <span class="key">Coverage</span>
+      <span class="val">${coverageName(coverageKey)}</span>
+    </div>
+
+    <div style="height:12px"></div>
+
+    ${resultBlock('Response', responseDeadline, tier.response, responseStatus, responseElapsed, responded)}
+    ${resultBlock('Escalation', escalationDeadline, tier.escalation, getStatus(escalationDeadline, null), null, null)}
+    ${resultBlock('Resolution', resolutionDeadline, tier.resolution, resolutionStatus, resolutionElapsed, resolved)}
+  `;
+
+  // Add to ticket log
+  addToLog({
+    id: ticketId,
+    priority: priorityId,
+    label: tier.label,
+    received,
+    resolutionDeadline,
+    resolutionStatus,
+    coverageKey,
+  });
+}
+
+function resultBlock(name, deadline, targetHrs, status, elapsed, actual) {
+  const statusLabel = status === 'met' ? 'Met' : status === 'breach' ? 'Breached' : 'Pending';
+  const elapsedStr  = elapsed !== null ? `Elapsed: ${fmtDuration(elapsed)}` : '';
+  const actualStr   = actual  ? `Actual: ${fmtDate(actual)}` : '';
+  return `
+    <div class="result-block">
+      <div class="result-block-header">
+        <span class="label">${name}</span>
+        <span class="status-pill ${status}"><span class="dot ${status}"></span>${statusLabel}</span>
+      </div>
+      <div class="result-block-body">
+        <div class="result-deadline">Deadline: ${fmtDate(deadline)}</div>
+        <div class="result-meta">Target: ${fmtDuration(targetHrs * 60)}
+          ${actualStr ? ' &nbsp;·&nbsp; ' + actualStr : ''}
+          ${elapsedStr ? ' &nbsp;·&nbsp; ' + elapsedStr : ''}
+        </div>
+      </div>
+    </div>`;
+}
+
+function coverageName(key) {
+  return { '247': '24/7 (All Hours)', 'bh': 'Business Hours (Mon–Fri)', 'extended': 'Extended (Mon–Sat)' }[key] || key;
+}
+
+function showResultError(containerId, msg) {
+  document.getElementById(containerId).innerHTML = `
+    <h3 class="card-title">Error</h3>
+    <div class="uptime-result fail" style="margin:0">${escHtml(msg)}</div>`;
+}
+
+/* ────────────────────────────────────────────────────────────
+   TICKET LOG
+   ──────────────────────────────────────────────────────────── */
+function addToLog(entry) {
+  ticketLog.unshift(entry);
+  renderLog();
+}
+
+function renderLog() {
+  const el = document.getElementById('ticketLog');
+  if (!ticketLog.length) {
+    el.innerHTML = '<div class="empty-log">No tickets logged yet.</div>';
+    return;
+  }
+  el.innerHTML = ticketLog.map(e => `
+    <div class="log-item">
+      <span class="log-id">${escHtml(e.id)}</span>
+      <span class="log-info">
+        <span class="prio-badge ${e.priority}">P${e.priority[1]} ${e.label}</span>
+        &nbsp; Received ${fmtDate(e.received)}
+      </span>
+      <span class="log-deadline">Resolution by: ${fmtDate(e.resolutionDeadline)}</span>
+      <span class="status-pill ${e.resolutionStatus}">
+        <span class="dot ${e.resolutionStatus}"></span>
+        ${e.resolutionStatus === 'met' ? 'Met' : e.resolutionStatus === 'breach' ? 'Breached' : 'Pending'}
+      </span>
+    </div>`).join('');
+}
+
+document.getElementById('clearLogBtn').addEventListener('click', () => {
+  ticketLog = [];
+  renderLog();
+});
+
+/* ────────────────────────────────────────────────────────────
+   COMPLIANCE TRACKER
+   ──────────────────────────────────────────────────────────── */
+
+// Auto-calculate breached count from total − met
+document.querySelectorAll('.sla-input-row:not(.header-row)').forEach(row => {
+  const totalInput   = row.querySelector('.comp-total');
+  const metInput     = row.querySelector('.comp-met');
+  const breachDisplay = row.querySelector('.comp-breached');
+
+  function update() {
+    const total  = parseInt(totalInput.value) || 0;
+    const met    = Math.min(parseInt(metInput.value) || 0, total);
+    metInput.value = met;
+    breachDisplay.textContent = Math.max(0, total - met);
+  }
+  totalInput.addEventListener('input', update);
+  metInput.addEventListener('input', update);
+});
+
+document.getElementById('calcComplianceBtn').addEventListener('click', calculateCompliance);
+
+function calculateCompliance() {
+  const rows = document.querySelectorAll('.sla-input-row:not(.header-row)');
+  let grandTotal = 0, grandMet = 0;
+  const data = [];
+
+  rows.forEach((row, i) => {
+    const tier   = tiers[i];
+    const total  = parseInt(row.querySelector('.comp-total').value) || 0;
+    const met    = Math.min(parseInt(row.querySelector('.comp-met').value) || 0, total);
+    const breach = total - met;
+    const pct    = total > 0 ? (met / total * 100) : null;
+    grandTotal  += total;
+    grandMet    += met;
+    data.push({ tier, total, met, breach, pct });
+  });
+
+  const overallPct = grandTotal > 0 ? (grandMet / grandTotal * 100) : null;
+  const startVal   = document.getElementById('periodStart').value;
+  const endVal     = document.getElementById('periodEnd').value;
+  const periodStr  = (startVal && endVal) ? `${startVal} – ${endVal}` : 'All time';
+
+  const container = document.getElementById('complianceResults');
+  container.innerHTML = `
+    <h3 class="card-title">Compliance Report</h3>
+    <div style="font-size:.78rem;color:var(--gray-500);margin-bottom:14px;">Period: ${escHtml(periodStr)}</div>
+    <div class="overall-compliance">
+      <div class="label">Overall SLA Compliance</div>
+      <div class="pct">${overallPct !== null ? overallPct.toFixed(2) + '%' : 'N/A'}</div>
+      <div class="sub">${grandMet} of ${grandTotal} tickets met SLA</div>
+    </div>
+    <div class="compliance-grid">
+      ${data.map(d => complianceCard(d)).join('')}
+    </div>
+    <div class="result-summary-row">
+      <span class="key">Total Tickets</span><span class="val">${grandTotal}</span>
+    </div>
+    <div class="result-summary-row">
+      <span class="key">Met SLA</span><span class="val text-green">${grandMet}</span>
+    </div>
+    <div class="result-summary-row">
+      <span class="key">Breached</span><span class="val text-red">${grandTotal - grandMet}</span>
+    </div>
+  `;
+}
+
+function complianceCard(d) {
+  const { tier, total, met, breach, pct } = d;
+  if (pct === null) {
+    return `<div class="compliance-card">
+      <div class="prio-badge ${tier.id}">${tier.id.toUpperCase()} ${tier.label}</div>
+      <div class="compliance-pct" style="color:var(--gray-400)">N/A</div>
+      <div class="compliance-label">No tickets in period</div>
+    </div>`;
+  }
+  const above = pct >= tier.complianceGoal;
+  return `<div class="compliance-card ${above ? 'above' : 'below'}">
+    <div class="prio-badge ${tier.id}">${tier.id.toUpperCase()} ${tier.label}</div>
+    <div class="compliance-pct">${pct.toFixed(1)}%</div>
+    <div class="compliance-label">Target: ${tier.complianceGoal}% &nbsp;·&nbsp; ${met}/${total} met</div>
+    ${breach > 0 ? `<div style="font-size:.75rem;margin-top:4px;color:var(--danger-color)">${breach} breach${breach !== 1 ? 'es' : ''}</div>` : ''}
+  </div>`;
+}
+
+/* ────────────────────────────────────────────────────────────
+   UPTIME CALCULATOR
+   ──────────────────────────────────────────────────────────── */
+const PERIOD_HOURS = { day: 24, week: 168, month: 720, quarter: 2184, year: 8760 };
+
+document.getElementById('calcUptimeBtn').addEventListener('click', () => {
+  const pct    = parseFloat(document.getElementById('uptimeTarget').value);
+  const period = document.getElementById('uptimePeriod').value;
+  const totalH = PERIOD_HOURS[period];
+  const totalM = totalH * 60;
+  const allowed = totalM * (1 - pct / 100);
+
+  const el = document.getElementById('uptimeResult');
+  el.className = 'uptime-result ok';
+  el.innerHTML = `
+    <div class="uptime-label">Allowed Downtime — ${pct}% SLA</div>
+    <div class="uptime-big">${fmtDowntime(allowed)}</div>
+    <div class="uptime-details">
+      <div>Period: ${periodLabel(period)} (${totalH.toLocaleString()} hours)</div>
+      <div>Total allowed downtime: ${fmtDowntime(allowed)} (${allowed.toFixed(2)} minutes)</div>
+      <div>Required uptime: ${(totalM - allowed).toFixed(1)} minutes</div>
+    </div>`;
+  el.classList.remove('hidden');
+});
+
+document.getElementById('calcActualUptimeBtn').addEventListener('click', () => {
+  const periodH    = parseFloat(document.getElementById('periodHours').value) || 720;
+  const downtimeM  = parseFloat(document.getElementById('totalDowntime').value) || 0;
+  const contracted = parseFloat(document.getElementById('contractedSla').value) || 99.9;
+  const totalM     = periodH * 60;
+  const uptimeM    = totalM - downtimeM;
+  const actualPct  = (uptimeM / totalM) * 100;
+  const isMet      = actualPct >= contracted;
+  const allowedM   = totalM * (1 - contracted / 100);
+  const overM      = Math.max(0, downtimeM - allowedM);
+
+  const el = document.getElementById('actualUptimeResult');
+  el.className = `uptime-result ${actualPct >= 99.9 ? 'ok' : actualPct >= 99 ? 'warn' : 'fail'}`;
+  el.innerHTML = `
+    <div class="uptime-label">Actual Uptime — ${isMet ? 'SLA Met' : 'SLA Breached'}</div>
+    <div class="uptime-big">${actualPct.toFixed(4)}%</div>
+    <div class="uptime-details">
+      <div>Period: ${periodH.toLocaleString()} hours (${totalM.toLocaleString()} min)</div>
+      <div>Total downtime: ${fmtDowntime(downtimeM)}</div>
+      <div>Contracted SLA: ${contracted}% (allowed: ${fmtDowntime(allowedM)})</div>
+      ${!isMet ? `<div>Over allowance: <strong>${fmtDowntime(overM)}</strong></div>` : '<div>SLA target achieved.</div>'}
+    </div>`;
+  el.classList.remove('hidden');
+});
+
+function periodLabel(p) {
+  return { day: 'Per Day', week: 'Per Week', month: 'Per Month (30d)', quarter: 'Per Quarter (91d)', year: 'Per Year (365d)' }[p];
+}
+
+/* ────────────────────────────────────────────────────────────
+   UPTIME REFERENCE TABLE
+   ──────────────────────────────────────────────────────────── */
+(function buildUptimeTable() {
+  const rows = [
+    { pct: 90,     nines: '1-nine'  },
+    { pct: 95,     nines: '—'       },
+    { pct: 99,     nines: '2-nines' },
+    { pct: 99.5,   nines: '—'       },
+    { pct: 99.9,   nines: '3-nines' },
+    { pct: 99.95,  nines: '—'       },
+    { pct: 99.99,  nines: '4-nines' },
+    { pct: 99.999, nines: '5-nines' },
+  ];
+  const periods = [
+    { key: 'day',     h: 24    },
+    { key: 'week',    h: 168   },
+    { key: 'month',   h: 720   },
+    { key: 'quarter', h: 2184  },
+    { key: 'year',    h: 8760  },
+  ];
+  const tbody = document.querySelector('#uptimeRefTable tbody');
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td><strong>${r.pct}%</strong></td>
+      <td>${r.nines}</td>
+      ${periods.map(p => {
+        const mins = p.h * 60 * (1 - r.pct / 100);
+        return `<td>${fmtDowntime(mins)}</td>`;
+      }).join('')}
+    </tr>`).join('');
+})();
+
+/* ────────────────────────────────────────────────────────────
+   SLA TIERS CONFIGURATION TABLE
+   ──────────────────────────────────────────────────────────── */
+function renderTiersTable() {
+  const tbody = document.getElementById('tiersTableBody');
+  tbody.innerHTML = tiers.map((t, i) => `
+    <tr data-idx="${i}">
+      <td><span class="prio-badge ${t.id}">${t.id.toUpperCase()}</span></td>
+      <td><input type="text"   class="tier-label"      value="${escHtml(t.label)}"        style="width:110px"/></td>
+      <td><input type="number" class="tier-response"   value="${t.response}"   min="0.1" step="0.25" style="width:90px"/></td>
+      <td><input type="number" class="tier-resolution" value="${t.resolution}" min="1"   step="1"    style="width:90px"/></td>
+      <td><input type="number" class="tier-escalation" value="${t.escalation}" min="0.5" step="0.5"  style="width:90px"/></td>
+      <td><input type="number" class="tier-goal"       value="${t.complianceGoal}" min="0" max="100" step="0.5" style="width:80px"/></td>
+      <td><input type="color"  class="tier-color"      value="${t.color}"     /></td>
+    </tr>`).join('');
+}
+
+renderTiersTable();
+
+document.getElementById('saveTiersBtn').addEventListener('click', () => {
+  document.querySelectorAll('#tiersTableBody tr').forEach((row, i) => {
+    tiers[i].label          = row.querySelector('.tier-label').value.trim() || tiers[i].label;
+    tiers[i].response       = parseFloat(row.querySelector('.tier-response').value)   || tiers[i].response;
+    tiers[i].resolution     = parseFloat(row.querySelector('.tier-resolution').value) || tiers[i].resolution;
+    tiers[i].escalation     = parseFloat(row.querySelector('.tier-escalation').value) || tiers[i].escalation;
+    tiers[i].complianceGoal = parseFloat(row.querySelector('.tier-goal').value)       || tiers[i].complianceGoal;
+    tiers[i].color          = row.querySelector('.tier-color').value;
+  });
+  saveTiers();
+  const msg = document.getElementById('tiersSaveMsg');
+  msg.classList.remove('hidden');
+  setTimeout(() => msg.classList.add('hidden'), 3000);
+});
+
+document.getElementById('resetTiersBtn').addEventListener('click', () => {
+  if (confirm('Reset all SLA tiers to defaults?')) {
+    tiers = DEFAULT_TIERS.map(t => ({ ...t }));
+    saveTiers();
+    renderTiersTable();
+  }
+});
+
+/* ────────────────────────────────────────────────────────────
+   UTILITY
+   ──────────────────────────────────────────────────────────── */
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+</script>
+</body>
+</html>
