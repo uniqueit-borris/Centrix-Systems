@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Orbital Gravity Simulator</title>
+<style>
+  :root{
+    --bg:#05060c;
+    --panel:rgba(14,17,28,0.82);
+    --panel-brd:rgba(120,150,220,0.16);
+    --txt:#e8edf8;
+    --muted:#8b96b0;
+    --accent:#5ad0ff;
+    --accent2:#a98bff;
+    --danger:#ff6b81;
+    --ok:#4ade80;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;margin:0}
+  body{
+    background:var(--bg);
+    color:var(--txt);
+    font:13px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    overflow:hidden;
+    overscroll-behavior:none;
+  }
+  #stage{position:fixed;inset:0;display:block;touch-action:none;cursor:crosshair}
+
+  /* ---------- panels ---------- */
+  .panel{
+    position:fixed;
+    background:var(--panel);
+    border:1px solid var(--panel-brd);
+    border-radius:14px;
+    backdrop-filter:blur(14px) saturate(140%);
+    -webkit-backdrop-filter:blur(14px) saturate(140%);
+    box-shadow:0 18px 48px rgba(0,0,0,.55);
+  }
+  #controls{
+    top:14px;left:14px;width:274px;
+    padding:14px 14px 12px;
+    max-height:calc(100vh - 28px);
+    overflow-y:auto;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(120,150,220,.35) transparent;
+  }
+  #controls::-webkit-scrollbar{width:8px}
+  #controls::-webkit-scrollbar-thumb{background:rgba(120,150,220,.3);border-radius:8px}
+
+  .title{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+  .title .mark{
+    width:24px;height:24px;border-radius:50%;flex:none;
+    background:radial-gradient(circle at 32% 30%,#ffe9a8,#ff9f43 45%,#7a3d10 100%);
+    box-shadow:0 0 14px rgba(255,170,70,.55);
+    position:relative;
+  }
+  .title .mark::after{
+    content:"";position:absolute;inset:-7px;border-radius:50%;
+    border:1px solid rgba(120,200,255,.5);
+    transform:rotate(-22deg) scaleY(.42);
+  }
+  .title h1{font-size:14px;margin:0;letter-spacing:.2px;font-weight:650}
+  .title small{display:block;color:var(--muted);font-size:10.5px;font-weight:400;letter-spacing:.3px}
+
+  .group{margin-bottom:13px}
+  .group:last-child{margin-bottom:4px}
+  .label{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-size:10px;text-transform:uppercase;letter-spacing:.1em;
+    color:var(--muted);margin-bottom:7px;font-weight:600;
+  }
+  .label b{color:var(--accent);font-weight:600;font-size:11px;letter-spacing:0;font-variant-numeric:tabular-nums}
+
+  /* ---------- preset chips ---------- */
+  .presets{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .chip{
+    display:flex;align-items:center;gap:7px;
+    padding:7px 8px;border-radius:9px;cursor:pointer;
+    background:rgba(255,255,255,.035);
+    border:1px solid rgba(255,255,255,.06);
+    color:var(--txt);font-size:11.5px;font-family:inherit;text-align:left;
+    transition:background .13s,border-color .13s,transform .08s;
+  }
+  .chip:hover{background:rgba(255,255,255,.075)}
+  .chip:active{transform:scale(.97)}
+  .chip.on{background:rgba(90,208,255,.14);border-color:rgba(90,208,255,.5)}
+  .chip .dot{width:13px;height:13px;border-radius:50%;flex:none;box-shadow:0 0 8px currentColor}
+  .chip span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* ---------- sliders ---------- */
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:20px;
+    background:transparent;cursor:pointer;margin:0;display:block;
+  }
+  input[type=range]::-webkit-slider-runnable-track{
+    height:4px;border-radius:4px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+    opacity:.75;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:15px;height:15px;border-radius:50%;
+    background:#fff;margin-top:-5.5px;border:none;
+    box-shadow:0 0 0 3px rgba(90,208,255,.28),0 2px 6px rgba(0,0,0,.5);
+  }
+  input[type=range]::-moz-range-track{height:4px;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:.75}
+  input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(90,208,255,.28)}
+
+  /* ---------- buttons ---------- */
+  .row{display:flex;gap:6px}
+  .btn{
+    flex:1;padding:8px 6px;border-radius:9px;cursor:pointer;
+    background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.08);
+    color:var(--txt);font:inherit;font-size:11.5px;font-weight:550;
+    transition:background .13s,border-color .13s,transform .08s;
+    display:flex;align-items:center;justify-content:center;gap:5px;
+  }
+  .btn:hover{background:rgba(255,255,255,.1)}
+  .btn:active{transform:scale(.97)}
+  .btn.primary{background:rgba(90,208,255,.16);border-color:rgba(90,208,255,.45);color:#cdf0ff}
+  .btn.primary:hover{background:rgba(90,208,255,.24)}
+  .btn.danger{background:rgba(255,107,129,.13);border-color:rgba(255,107,129,.38);color:#ffc2cb}
+  .btn.danger:hover{background:rgba(255,107,129,.22)}
+  .btn kbd{
+    font:inherit;font-size:9px;opacity:.55;border:1px solid currentColor;
+    border-radius:3px;padding:0 3px;line-height:1.3;
+  }
+
+  /* ---------- toggles ---------- */
+  .toggles{display:flex;flex-direction:column;gap:5px}
+  .tog{
+    display:flex;align-items:center;gap:8px;cursor:pointer;
+    padding:5px 7px;border-radius:8px;user-select:none;font-size:11.5px;
+    transition:background .13s;
+  }
+  .tog:hover{background:rgba(255,255,255,.04)}
+  .tog input{display:none}
+  .tog .sw{
+    width:30px;height:17px;border-radius:99px;flex:none;position:relative;
+    background:rgba(255,255,255,.11);transition:background .16s;
+  }
+  .tog .sw::after{
+    content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;
+    background:#93a0ba;transition:transform .16s,background .16s;
+  }
+  .tog input:checked + .sw{background:rgba(90,208,255,.4)}
+  .tog input:checked + .sw::after{transform:translateX(13px);background:#fff}
+
+  /* ---------- scenario list ---------- */
+  .scn{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+
+  /* ---------- stats ---------- */
+  #stats{
+    top:14px;right:14px;padding:10px 12px;min-width:132px;
+    font-variant-numeric:tabular-nums;
+  }
+  #stats .st{display:flex;justify-content:space-between;gap:14px;font-size:11px;padding:1.5px 0}
+  #stats .st span{color:var(--muted)}
+  #stats .st b{font-weight:600}
+
+  /* ---------- hint bar ---------- */
+  #hint{
+    left:50%;transform:translateX(-50%);bottom:14px;
+    padding:8px 14px;display:flex;gap:14px;flex-wrap:wrap;justify-content:center;
+    font-size:11px;color:var(--muted);max-width:calc(100vw - 320px);
+  }
+  #hint b{color:var(--txt);font-weight:600}
+  #hint i{font-style:normal;color:rgba(255,255,255,.3);margin:0 2px}
+  #hint .touch{display:none}
+
+  #paused{
+    position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+    font-size:52px;font-weight:700;letter-spacing:.22em;
+    color:rgba(255,255,255,.07);pointer-events:none;display:none;
+    text-transform:uppercase;
+  }
+  #paused.on{display:block}
+
+  #burger{
+    position:fixed;top:14px;left:14px;z-index:5;display:none;
+    width:40px;height:40px;border-radius:11px;align-items:center;justify-content:center;
+    background:var(--panel);border:1px solid var(--panel-brd);color:var(--txt);
+    cursor:pointer;font-size:17px;backdrop-filter:blur(14px);
+  }
+  @media (max-width:760px){
+    #burger{display:flex}
+    /* Leave room for the hint bar so the panel never scrolls underneath it. */
+    #controls{top:62px;max-height:calc(100vh - 140px)}
+    #controls.hide{display:none}
+    #hint{max-width:calc(100vw - 28px);font-size:10.5px;gap:7px;bottom:10px;
+          flex-wrap:nowrap;white-space:nowrap;padding:8px 12px}
+    #hint .ptr{display:none}
+    #hint .touch{display:inline}
+    #stats{padding:8px 10px;min-width:0}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="stage"></canvas>
+
+<button id="burger" aria-label="Toggle controls">☰</button>
+
+<div class="panel" id="controls">
+  <div class="title">
+    <div class="mark"></div>
+    <div>
+      <h1>Orbital Gravity Sim</h1>
+      <small>Drag to fling · N-body Verlet</small>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="label">Body mass <b id="massOut">Planet</b></div>
+    <div class="presets" id="presets"></div>
+  </div>
+
+  <div class="group">
+    <div class="label">Time scale <b id="tsOut">1.00×</b></div>
+    <input type="range" id="timeScale" min="0" max="400" value="100" />
+    <div class="row" style="margin-top:7px">
+      <button class="btn primary" id="playBtn">Pause <kbd>space</kbd></button>
+      <button class="btn danger" id="clearBtn">Clear <kbd>C</kbd></button>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="label">Trail length <b id="trailOut">260</b></div>
+    <input type="range" id="trailLen" min="0" max="600" value="260" />
+  </div>
+
+  <div class="group">
+    <div class="label">Gravity <b id="gOut">1.00×</b></div>
+    <input type="range" id="gravity" min="0" max="300" value="100" />
+  </div>
+
+  <div class="group">
+    <div class="label">Options</div>
+    <div class="toggles">
+      <label class="tog"><input type="checkbox" id="optMerge" checked /><i class="sw"></i>Merge on collision</label>
+      <label class="tog"><input type="checkbox" id="optPredict" checked /><i class="sw"></i>Trajectory preview</label>
+      <label class="tog"><input type="checkbox" id="optFollow" /><i class="sw"></i>Follow centre of mass</label>
+      <label class="tog"><input type="checkbox" id="optGlow" checked /><i class="sw"></i>Glow &amp; particles</label>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="label">Scenarios</div>
+    <div class="scn">
+      <button class="btn" data-scn="solar">Solar system</button>
+      <button class="btn" data-scn="binary">Binary star</button>
+      <button class="btn" data-scn="figure8">Figure-8</button>
+      <button class="btn" data-scn="cluster">Cluster</button>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <button class="btn" id="resetView">Reset view <kbd>R</kbd></button>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="stats">
+  <div class="st"><span>Bodies</span><b id="sBodies">0</b></div>
+  <div class="st"><span>Mass</span><b id="sMass">0</b></div>
+  <div class="st"><span>Zoom</span><b id="sZoom">1.00×</b></div>
+  <div class="st"><span>FPS</span><b id="sFps">60</b></div>
+</div>
+
+<div class="panel" id="hint">
+  <span class="ptr"><b>Drag</b> on empty space to fling a body</span><i class="ptr">·</i>
+  <span class="ptr"><b>Wheel</b> zoom</span><i class="ptr">·</i>
+  <span class="ptr"><b>Right-drag</b> pan</span><i class="ptr">·</i>
+  <span class="ptr"><b>Right-click</b> a body to delete</span><i class="ptr">·</i>
+  <span class="ptr"><b>1–5</b> mass presets</span>
+  <span class="touch"><b>Drag</b> to fling</span><i class="touch">·</i>
+  <span class="touch"><b>Pinch</b> zoom</span><i class="touch">·</i>
+  <span class="touch">2-finger <b>pan</b></span>
+</div>
+
+<div id="paused">Paused</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   Orbital Gravity Simulator
+   ---------------------------------------------------------------------
+   Units: distance = world pixels, time = seconds, mass = arbitrary.
+   Integrator: velocity Verlet at a fixed internal step (symplectic, so
+   closed orbits stay closed instead of spiralling out like Euler does).
+   ===================================================================== */
+
+const CFG = {
+  G: 2000,           // gravitational constant in world units
+  H: 1 / 240,        // fixed physics step (seconds of simulated time)
+  MAX_SUB: 96,       // hard cap on substeps per frame
+  MAX_DT: 1 / 30,    // clamp real frame delta so tab-switches don't explode
+  SOFT_BASE: 1.5,      // softening floor (px), avoids 1/r^2 singularities
+  SOFT_R: 0.09,      // extra softening proportional to summed radii
+  RESTITUTION: 0.72, // bounce mode elasticity
+  FLING: 2.2,        // drag pixels -> velocity
+  MAX_SPEED: 2000,
+  TRAIL_MIN_D: 2.5,  // min world distance between trail samples
+  CULL_R: 26000,     // bodies further than this from the barycentre are dropped
+  MAX_PARTICLES: 900
+};
+
+const PRESETS = [
+  { id:'moon',   name:'Moon',       mass:25,    radius:5,    color:'#a8b6cc', kind:'rock'  },
+  { id:'planet', name:'Planet',     mass:220,   radius:11,   color:'#4fa3ff', kind:'rock'  },
+  { id:'giant',  name:'Gas giant',  mass:1400,  radius:21,   color:'#e8a95c', kind:'rock'  },
+  { id:'star',   name:'Star',       mass:9000,  radius:32,   color:'#ffd166', kind:'star'  },
+  { id:'hole',   name:'Black hole', mass:52000, radius:17,   color:'#c08bff', kind:'hole'  }
+];
+
+/* ---------------------------------------------------------------- state */
+const S = {
+  bodies: [],
+  particles: [],
+  preset: 1,
+  timeScale: 1,
+  gravityMul: 1,
+  trailLen: 260,
+  merge: true,
+  predict: true,
+  follow: false,
+  glow: true,
+  paused: false,
+  cam: { x:0, y:0, scale:1, tx:0, ty:0 },  // t* = smoothed follow target
+  drag: null,     // { x,y,cx,cy } world coords of an in-progress fling
+  aimSpeed: 0,
+  pan: null,
+  pointers: new Map(),
+  pinch: 0,
+  fps: 60,
+  seq: 0
+};
+
+const cv = document.getElementById('stage');
+const ctx = cv.getContext('2d', { alpha:false });
+let W = 0, H = 0, DPR = 1;
+
+function resize(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = Math.round(W * DPR);
+  cv.height = Math.round(H * DPR);
+  cv.style.width = W + 'px';
+  cv.style.height = H + 'px';
+}
+window.addEventListener('resize', resize);
+resize();
+
+/* ------------------------------------------------------- coordinate maps */
+function toWorld(sx, sy){
+  return {
+    x: (sx - W / 2) / S.cam.scale + S.cam.x,
+    y: (sy - H / 2) / S.cam.scale + S.cam.y
+  };
+}
+function toScreen(wx, wy){
+  return {
+    x: (wx - S.cam.x) * S.cam.scale + W / 2,
+    y: (wy - S.cam.y) * S.cam.scale + H / 2
+  };
+}
+
+/* ------------------------------------------------------------- body model */
+function makeBody(x, y, vx, vy, p){
+  return {
+    id: ++S.seq,
+    x, y, vx, vy,
+    ax: 0, ay: 0, pax: 0, pay: 0,
+    mass: p.mass,
+    r: p.radius,
+    color: p.color,
+    kind: p.kind || 'rock',
+    seed: Math.random() * 6.283,
+    trail: [],
+    flash: 0
+  };
+}
+// Merged bodies conserve volume: r = cbrt(r1^3 + r2^3)
+const radiusFromVolumes = (a, b) => Math.cbrt(a*a*a + b*b*b);
+
+function mixColor(c1, c2, t){
+  const p = h => [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
+  const a = p(c1), b = p(c2);
+  const m = a.map((v,i) => Math.round(v + (b[i] - v) * t));
+  return '#' + m.map(v => v.toString(16).padStart(2,'0')).join('');
+}
+
+/* ------------------------------------------------------------- integrator */
+function computeAccel(list){
+  for (let i = 0; i < list.length; i++){ list[i].ax = 0; list[i].ay = 0; }
+  const G = CFG.G * S.gravityMul;
+  const n = list.length;
+  for (let i = 0; i < n; i++){
+    const a = list[i];
+    for (let j = i + 1; j < n; j++){
+      const b = list[j];
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const soft = CFG.SOFT_BASE + CFG.SOFT_R * (a.r + b.r);
+      const d2 = dx*dx + dy*dy + soft*soft;
+      const inv = 1 / (d2 * Math.sqrt(d2));   // 1 / d^3
+      const f = G * inv;
+      a.ax += f * b.mass * dx;  a.ay += f * b.mass * dy;
+      b.ax -= f * a.mass * dx;  b.ay -= f * a.mass * dy;
+    }
+  }
+}
+
+function stepPhysics(h){
+  const list = S.bodies;
+  const n = list.length;
+  if (!n) return;
+
+  computeAccel(list);
+  const h2 = 0.5 * h * h;
+  for (let i = 0; i < n; i++){
+    const b = list[i];
+    b.x += b.vx * h + b.ax * h2;
+    b.y += b.vy * h + b.ay * h2;
+    b.pax = b.ax; b.pay = b.ay;      // keep old acceleration for the kick
+  }
+  computeAccel(list);
+  const hh = 0.5 * h;
+  for (let i = 0; i < n; i++){
+    const b = list[i];
+    b.vx += (b.pax + b.ax) * hh;
+    b.vy += (b.pay + b.ay) * hh;
+    // Speed clamp: only ever engages on a pathological close encounter.
+    const s2 = b.vx*b.vx + b.vy*b.vy;
+    if (s2 > CFG.MAX_SPEED * CFG.MAX_SPEED){
+      const k = CFG.MAX_SPEED / Math.sqrt(s2);
+      b.vx *= k; b.vy *= k;
+    }
+  }
+  resolveCollisions();
+}
+
+/* ------------------------------------------------------------- collisions */
+function resolveCollisions(){
+  const list = S.bodies;
+  for (let i = 0; i < list.length; i++){
+    for (let j = i + 1; j < list.length; j++){
+      const a = list[i], b = list[j];
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const rr = a.r + b.r;
+      const d2 = dx*dx + dy*dy;
+      if (d2 >= rr*rr || d2 === 0) continue;
+      const d = Math.sqrt(d2);
+      const nx = dx / d, ny = dy / d;
+
+      if (S.merge){
+        const big = a.mass >= b.mass ? a : b;
+        const small = big === a ? b : a;
+        const M = a.mass + b.mass;
+        const impact = Math.hypot(a.vx - b.vx, a.vy - b.vy);
+        big.x = (a.x*a.mass + b.x*b.mass) / M;
+        big.y = (a.y*a.mass + b.y*b.mass) / M;
+        big.vx = (a.vx*a.mass + b.vx*b.mass) / M;
+        big.vy = (a.vy*a.mass + b.vy*b.mass) / M;
+        big.color = mixColor(big.color, small.color, small.mass / M * 0.65);
+        big.r = radiusFromVolumes(a.r, b.r);
+        big.mass = M;
+        if (big.kind !== 'hole' && small.kind === 'hole') big.kind = 'hole';
+        if (big.kind === 'rock' && small.kind === 'star') big.kind = 'star';
+        big.flash = 1;
+        spawnBurst(big.x, big.y, small.color, Math.min(38, 8 + small.r * 1.6), impact);
+        list.splice(list.indexOf(small), 1);
+        // The list shifted under us: re-scan this slot from scratch. Works
+        // whether `a` survived or was the one absorbed.
+        i--;
+        break;
+      } else {
+        // Elastic-ish bounce with positional de-overlap.
+        const rvx = b.vx - a.vx, rvy = b.vy - a.vy;
+        const vn = rvx * nx + rvy * ny;
+        const invA = 1 / a.mass, invB = 1 / b.mass;
+        if (vn < 0){
+          const jimp = -(1 + CFG.RESTITUTION) * vn / (invA + invB);
+          a.vx -= jimp * invA * nx; a.vy -= jimp * invA * ny;
+          b.vx += jimp * invB * nx; b.vy += jimp * invB * ny;
+          if (-vn > 60) spawnBurst((a.x+b.x)/2, (a.y+b.y)/2, b.color, 10, -vn);
+        }
+        const pen = (rr - d) / (invA + invB) * 0.8;
+        a.x -= pen * invA * nx; a.y -= pen * invA * ny;
+        b.x += pen * invB * nx; b.y += pen * invB * ny;
+      }
+    }
+  }
+}
+
+/* -------------------------------------------------------------- particles */
+function spawnBurst(x, y, color, count, energy){
+  if (!S.glow) return;
+  const speed = Math.min(340, 60 + energy * 0.55);
+  for (let i = 0; i < count; i++){
+    if (S.particles.length >= CFG.MAX_PARTICLES) break;
+    const ang = Math.random() * 6.283;
+    const sp = speed * (0.25 + Math.random() * 0.95);
+    S.particles.push({
+      x, y,
+      vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp,
+      life: 0, max: 0.5 + Math.random() * 0.85,
+      size: 1 + Math.random() * 2.4,
+      color
+    });
+  }
+}
+function stepParticles(dt){
+  const p = S.particles;
+  for (let i = p.length - 1; i >= 0; i--){
+    const q = p[i];
+    q.life += dt;
+    if (q.life >= q.max){ p.splice(i, 1); continue; }
+    q.x += q.vx * dt; q.y += q.vy * dt;
+    q.vx *= 0.985; q.vy *= 0.985;
+  }
+}
+
+/* ------------------------------------------------------------ housekeeping */
+function barycentre(){
+  let mx = 0, my = 0, m = 0;
+  for (const b of S.bodies){ mx += b.x * b.mass; my += b.y * b.mass; m += b.mass; }
+  return m ? { x: mx/m, y: my/m, m } : { x:0, y:0, m:0 };
+}
+function zeroMomentum(){
+  let px = 0, py = 0, m = 0;
+  for (const b of S.bodies){ px += b.vx * b.mass; py += b.vy * b.mass; m += b.mass; }
+  if (!m) return;
+  const vx = px/m, vy = py/m;
+  for (const b of S.bodies){ b.vx -= vx; b.vy -= vy; }
+}
+function cullEscapees(){
+  if (S.bodies.length < 2) return;
+  const c = barycentre();
+  for (let i = S.bodies.length - 1; i >= 0; i--){
+    const b = S.bodies[i];
+    if (Math.hypot(b.x - c.x, b.y - c.y) > CFG.CULL_R) S.bodies.splice(i, 1);
+  }
+}
+function pushTrails(){
+  const lim = S.trailLen;
+  for (const b of S.bodies){
+    if (lim === 0){ if (b.trail.length) b.trail.length = 0; continue; }
+    const t = b.trail;
+    const last = t[t.length - 1];
+    if (!last || Math.hypot(b.x - last.x, b.y - last.y) > CFG.TRAIL_MIN_D){
+      t.push({ x:b.x, y:b.y });
+      const over = t.length - lim;
+      if (over > 0) t.splice(0, over);
+    }
+  }
+}
+
+/* ====================================================================
+   Trajectory prediction — integrates a probe through the *frozen* field
+   of the current bodies. Cheap, and accurate enough to aim with.
+   ==================================================================== */
+function predictPath(x, y, vx, vy, radius){
+  const pts = [{ x, y }];
+  const G = CFG.G * S.gravityMul;
+  const src = S.bodies;
+  const h = 1 / 90;
+  const STEPS = 440;
+  let ax = 0, ay = 0;
+
+  const accel = (px, py) => {
+    let fx = 0, fy = 0;
+    for (let i = 0; i < src.length; i++){
+      const b = src[i];
+      const dx = b.x - px, dy = b.y - py;
+      const soft = CFG.SOFT_BASE + CFG.SOFT_R * (b.r + radius);
+      const d2 = dx*dx + dy*dy + soft*soft;
+      const inv = 1 / (d2 * Math.sqrt(d2));
+      fx += G * b.mass * inv * dx;
+      fy += G * b.mass * inv * dy;
+    }
+    return [fx, fy];
+  };
+
+  [ax, ay] = accel(x, y);
+  for (let s = 0; s < STEPS; s++){
+    x += vx * h + 0.5 * ax * h * h;
+    y += vy * h + 0.5 * ay * h * h;
+    const [nax, nay] = accel(x, y);
+    vx += 0.5 * (ax + nax) * h;
+    vy += 0.5 * (ay + nay) * h;
+    ax = nax; ay = nay;
+    if (s % 2 === 0) pts.push({ x, y });
+    // Stop the preview where the body would hit something.
+    for (let i = 0; i < src.length; i++){
+      const b = src[i];
+      if (Math.hypot(b.x - x, b.y - y) < b.r + radius) return { pts, hit:true };
+    }
+    if (Math.hypot(x, y) > CFG.CULL_R) break;
+  }
+  return { pts, hit:false };
+}
+
+/* ============================== rendering ============================== */
+const STARS = [];
+const STAR_TILE = 900;
+(function seedStars(){
+  let s = 20260829;
+  const rnd = () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296;
+  for (let i = 0; i < 230; i++){
+    STARS.push({ x: rnd()*STAR_TILE, y: rnd()*STAR_TILE, r: rnd()*1.1 + 0.25, a: rnd()*0.5 + 0.12 });
+  }
+})();
+
+function drawStarfield(){
+  const par = 0.22;
+  const ox = ((-S.cam.x * par * S.cam.scale) % STAR_TILE + STAR_TILE) % STAR_TILE;
+  const oy = ((-S.cam.y * par * S.cam.scale) % STAR_TILE + STAR_TILE) % STAR_TILE;
+  ctx.fillStyle = '#dfe8ff';
+  for (let tx = -STAR_TILE + ox; tx < W + STAR_TILE; tx += STAR_TILE){
+    for (let ty = -STAR_TILE + oy; ty < H + STAR_TILE; ty += STAR_TILE){
+      for (let i = 0; i < STARS.length; i++){
+        const st = STARS[i];
+        ctx.globalAlpha = st.a;
+        ctx.fillRect(tx + st.x, ty + st.y, st.r, st.r);
+      }
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawTrail(b){
+  const t = b.trail;
+  if (t.length < 3) return;
+  const inv = 1 / S.cam.scale;
+  const chunks = 6;
+  const per = Math.ceil((t.length - 1) / chunks);
+  ctx.strokeStyle = b.color;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  for (let c = 0; c < chunks; c++){
+    const from = c * per;
+    const to = Math.min(t.length - 1, from + per);
+    if (to - from < 1) continue;
+    const f = (c + 1) / chunks;
+    ctx.globalAlpha = 0.07 + f * f * 0.5;
+    ctx.lineWidth = Math.max(inv * 0.9, b.r * (0.1 + f * 0.16));
+    ctx.beginPath();
+    ctx.moveTo(t[from].x, t[from].y);
+    for (let i = from + 1; i <= to; i++) ctx.lineTo(t[i].x, t[i].y);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawBody(b, now){
+  const inv = 1 / S.cam.scale;
+  const r = Math.max(b.r, 1.6 * inv);
+
+  if (S.glow && b.kind !== 'rock'){
+    ctx.globalCompositeOperation = 'lighter';
+    const gr = r * (b.kind === 'hole' ? 5.5 : 4.2);
+    const g = ctx.createRadialGradient(b.x, b.y, r * 0.5, b.x, b.y, gr);
+    g.addColorStop(0, b.kind === 'hole' ? 'rgba(150,90,255,0.30)' : 'rgba(255,196,96,0.34)');
+    g.addColorStop(0.45, b.kind === 'hole' ? 'rgba(110,60,220,0.10)' : 'rgba(255,150,60,0.10)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(b.x, b.y, gr, 0, 6.2832); ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  if (b.kind === 'hole'){
+    // Accretion ring, then the event horizon punched out over it.
+    ctx.save();
+    ctx.translate(b.x, b.y);
+    ctx.rotate(now * 0.6 + b.seed);
+    ctx.scale(1, 0.34);
+    const ring = ctx.createRadialGradient(0, 0, r * 1.05, 0, 0, r * 2.5);
+    ring.addColorStop(0, 'rgba(255,255,255,0.9)');
+    ring.addColorStop(0.35, 'rgba(190,130,255,0.55)');
+    ring.addColorStop(1, 'rgba(90,40,160,0)');
+    ctx.fillStyle = ring;
+    ctx.beginPath(); ctx.arc(0, 0, r * 2.5, 0, 6.2832); ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = '#05050a';
+    ctx.beginPath(); ctx.arc(b.x, b.y, r, 0, 6.2832); ctx.fill();
+    ctx.strokeStyle = 'rgba(206,160,255,0.85)';
+    ctx.lineWidth = Math.max(inv, r * 0.06);
+    ctx.beginPath(); ctx.arc(b.x, b.y, r * 1.03, 0, 6.2832); ctx.stroke();
+  } else {
+    const lx = b.x - r * 0.32, ly = b.y - r * 0.34;
+    const g = ctx.createRadialGradient(lx, ly, r * 0.06, b.x, b.y, r * 1.06);
+    if (b.kind === 'star'){
+      g.addColorStop(0, '#fffef2');
+      g.addColorStop(0.42, b.color);
+      g.addColorStop(1, mixColor(b.color, '#7a2f00', 0.55));
+    } else {
+      g.addColorStop(0, mixColor(b.color, '#ffffff', 0.55));
+      g.addColorStop(0.55, b.color);
+      g.addColorStop(1, mixColor(b.color, '#04060f', 0.62));
+    }
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(b.x, b.y, r, 0, 6.2832); ctx.fill();
+  }
+
+  if (b.flash > 0.01){
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = b.flash * 0.75;
+    const fr = r * (1 + (1 - b.flash) * 3.2);
+    const fg = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, fr);
+    fg.addColorStop(0, 'rgba(255,255,255,0.9)');
+    fg.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = fg;
+    ctx.beginPath(); ctx.arc(b.x, b.y, fr, 0, 6.2832); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+  }
+}
+
+function drawParticles(){
+  if (!S.particles.length) return;
+  ctx.globalCompositeOperation = 'lighter';
+  const inv = 1 / S.cam.scale;
+  for (const q of S.particles){
+    const f = 1 - q.life / q.max;
+    ctx.globalAlpha = f * 0.85;
+    ctx.fillStyle = q.color;
+    const s = Math.max(q.size * inv, q.size * 0.5);
+    ctx.beginPath(); ctx.arc(q.x, q.y, s, 0, 6.2832); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+function drawAim(){
+  const d = S.drag;
+  if (!d) return;
+  const p = PRESETS[S.preset];
+  const inv = 1 / S.cam.scale;
+  const vx = (d.cx - d.x) * CFG.FLING;
+  const vy = (d.cy - d.y) * CFG.FLING;
+  const speed = Math.hypot(vx, vy);
+
+  if (S.predict && speed > 1){
+    const { pts, hit } = predictPath(d.x, d.y, vx, vy, p.radius);
+    ctx.strokeStyle = hit ? 'rgba(255,140,160,0.75)' : 'rgba(150,220,255,0.7)';
+    ctx.lineWidth = Math.max(1.2 * inv, 0.6);
+    ctx.setLineDash([6 * inv, 7 * inv]);
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Ghost of the body about to be launched.
+  ctx.globalAlpha = 0.55;
+  ctx.fillStyle = p.color;
+  ctx.beginPath(); ctx.arc(d.x, d.y, Math.max(p.radius, 2*inv), 0, 6.2832); ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+  ctx.lineWidth = Math.max(1.4 * inv, 0.7);
+  ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(d.cx, d.cy); ctx.stroke();
+
+  // Arrowhead at the cursor, in the launch direction.
+  const ang = Math.atan2(d.cy - d.y, d.cx - d.x);
+  const ah = 11 * inv;
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.beginPath();
+  ctx.moveTo(d.cx, d.cy);
+  ctx.lineTo(d.cx - Math.cos(ang - 0.42) * ah, d.cy - Math.sin(ang - 0.42) * ah);
+  ctx.lineTo(d.cx - Math.cos(ang + 0.42) * ah, d.cy - Math.sin(ang + 0.42) * ah);
+  ctx.closePath(); ctx.fill();
+  S.aimSpeed = speed;
+}
+
+function render(now){
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.fillStyle = '#05060c';
+  ctx.fillRect(0, 0, W, H);
+  drawStarfield();
+
+  const sc = S.cam.scale;
+  ctx.setTransform(DPR*sc, 0, 0, DPR*sc, DPR*(W/2 - S.cam.x*sc), DPR*(H/2 - S.cam.y*sc));
+
+  for (const b of S.bodies) drawTrail(b);
+  drawAim();
+  for (const b of S.bodies) drawBody(b, now);
+  drawParticles();
+
+  // Speed readout follows the cursor, drawn unscaled.
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  if (S.drag){
+    const s = toScreen(S.drag.cx, S.drag.cy);
+    ctx.font = '600 11px ui-sans-serif,system-ui,sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.fillText(Math.round(S.aimSpeed || 0) + ' px/s', s.x + 14, s.y - 10);
+  }
+}
+
+/* ============================== scenarios ============================== */
+const add = (x, y, vx, vy, p) => { const b = makeBody(x, y, vx, vy, p); S.bodies.push(b); return b; };
+const Geff = () => CFG.G * S.gravityMul;
+// Speed for a circular orbit of radius r around central mass M.
+const vCirc = (M, r) => Math.sqrt(Geff() * M / r);
+
+function clearAll(){
+  S.bodies.length = 0;
+  S.particles.length = 0;
+}
+
+const SCENARIOS = {
+  solar(){
+    // Planet masses are kept small next to the star and the spacings wide:
+    // neighbours whose mutual Hill radii overlap scatter each other apart
+    // within a couple of minutes, which is not what this preset is for.
+    const M = 16000;
+    add(0, 0, 0, 0, { mass:M, radius:34, color:'#ffd166', kind:'star' });
+    const specs = [
+      { r:110, m:12,  rad:6,  c:'#c9a084' },
+      { r:190, m:40,  rad:10, c:'#4fa3ff' },
+      { r:300, m:90,  rad:13, c:'#8fe3d0' },
+      { r:480, m:45,  rad:9,  c:'#b9a8ff' },
+      { r:950, m:300, rad:20, c:'#e8a95c', moon:60 }
+    ];
+    // Golden-angle spacing so planets never start bunched together.
+    specs.forEach((s, i) => {
+      const dir = i * 2.39996 + 0.7;
+      const x = Math.cos(dir) * s.r, y = Math.sin(dir) * s.r;
+      const v = vCirc(M, s.r);
+      const p = add(x, y, -Math.sin(dir) * v, Math.cos(dir) * v,
+                    { mass:s.m, radius:s.rad, color:s.c, kind:'rock' });
+      if (s.moon){
+        // Well inside the planet's Hill sphere, so the star can't strip it.
+        const mv = vCirc(s.m, s.moon);
+        add(p.x + s.moon, p.y, p.vx, p.vy + mv, { mass:5, radius:3.5, color:'#dfe6f2', kind:'rock' });
+      }
+    });
+    zeroMomentum();
+  },
+
+  binary(){
+    const m = 7000, sep = 280;
+    // Equal masses about a common barycentre: each at sep/2, v = sqrt(Gm/2sep).
+    const v = Math.sqrt(Geff() * m / (2 * sep));
+    add(-sep/2, 0, 0, -v, { mass:m, radius:28, color:'#ffd07a', kind:'star' });
+    add( sep/2, 0, 0,  v, { mass:m, radius:26, color:'#8fd3ff', kind:'star' });
+    // Circumbinary planets, far enough out that the pair looks like one mass.
+    const ring = [{r:1050,m:150,rad:12,c:'#7fd8a8'},{r:1900,m:90,rad:9,c:'#ff9ec4'}];
+    ring.forEach((s, i) => {
+      const dir = i * 2.39996;
+      const vv = vCirc(2*m, s.r);
+      add(Math.cos(dir)*s.r, Math.sin(dir)*s.r, -Math.sin(dir)*vv, Math.cos(dir)*vv,
+          { mass:s.m, radius:s.rad, color:s.c, kind:'rock' });
+    });
+    zeroMomentum();
+  },
+
+  figure8(){
+    // Chenciner–Montgomery choreography: three equal masses chasing each other
+    // round a figure eight. Stated for G = m = 1, so rescale into world units:
+    // positions by L, velocities by sqrt(G*m/L).
+    const m = 900, L = 200;
+    const V = Math.sqrt(Geff() * m / L);
+    const P = { mass:m, radius:15, kind:'rock' };
+    const A = [ 0.97000436, -0.24308753];
+    const Vc = [-0.93240737, -0.86473146];
+    add(-A[0]*L, -A[1]*L, -Vc[0]/2*V, -Vc[1]/2*V, {...P, color:'#5ad0ff'});
+    add( A[0]*L,  A[1]*L, -Vc[0]/2*V, -Vc[1]/2*V, {...P, color:'#ff8fb0'});
+    add( 0, 0,             Vc[0]*V,    Vc[1]*V,   {...P, color:'#ffd166'});
+  },
+
+  cluster(){
+    add(0, 0, 0, 0, { mass:9000, radius:30, color:'#ffe0a0', kind:'star' });
+    for (let i = 0; i < 16; i++){
+      const r = 160 + Math.random() * 520;
+      const a = Math.random() * 6.283;
+      const v = vCirc(9000, r) * (0.72 + Math.random() * 0.55);
+      const mass = 20 + Math.random() * 700;
+      add(Math.cos(a)*r, Math.sin(a)*r, -Math.sin(a)*v, Math.cos(a)*v,
+          { mass, radius: 4 + Math.cbrt(mass) * 1.5,
+            color: `hsl(${Math.floor(Math.random()*360)} 70% 66%)`, kind:'rock' });
+    }
+    zeroMomentum();
+  }
+};
+
+function loadScenario(name){
+  clearAll();
+  SCENARIOS[name]();
+  S.cam.x = 0; S.cam.y = 0;
+  S.cam.scale = name === 'binary' ? 0.22 : (name === 'solar' ? 0.45 : 1);
+  S.paused = false;
+  syncUI();
+}
+
+/* ================================ input ================================ */
+function bodyAt(wx, wy){
+  for (let i = S.bodies.length - 1; i >= 0; i--){
+    const b = S.bodies[i];
+    const pad = 6 / S.cam.scale;
+    if (Math.hypot(b.x - wx, b.y - wy) <= b.r + pad) return b;
+  }
+  return null;
+}
+
+function zoomAt(sx, sy, factor){
+  const before = toWorld(sx, sy);
+  S.cam.scale = Math.min(6, Math.max(0.06, S.cam.scale * factor));
+  const after = toWorld(sx, sy);
+  S.cam.x += before.x - after.x;
+  S.cam.y += before.y - after.y;
+}
+
+cv.addEventListener('contextmenu', e => e.preventDefault());
+
+cv.addEventListener('pointerdown', e => {
+  cv.setPointerCapture(e.pointerId);
+  S.pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
+
+  if (S.pointers.size === 2){
+    // Second finger: abandon the fling, start a pinch instead.
+    S.drag = null;
+    const [a, b] = [...S.pointers.values()];
+    S.pinch = Math.hypot(a.x - b.x, a.y - b.y);
+    S.pan = { sx:(a.x+b.x)/2, sy:(a.y+b.y)/2, cx:S.cam.x, cy:S.cam.y, moved:0, touch:true };
+    return;
+  }
+
+  if (e.button === 2 || e.button === 1){
+    S.pan = { sx:e.clientX, sy:e.clientY, cx:S.cam.x, cy:S.cam.y, moved:0, btn:e.button };
+  } else if (e.button === 0){
+    const w = toWorld(e.clientX, e.clientY);
+    S.drag = { x:w.x, y:w.y, cx:w.x, cy:w.y, sx:e.clientX, sy:e.clientY };
+  }
+});
+
+cv.addEventListener('pointermove', e => {
+  if (S.pointers.has(e.pointerId)) S.pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
+
+  if (S.pointers.size === 2 && S.pan && S.pan.touch){
+    const [a, b] = [...S.pointers.values()];
+    const dist = Math.hypot(a.x - b.x, a.y - b.y);
+    const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+    if (S.pinch > 0) zoomAt(mx, my, dist / S.pinch);
+    S.pinch = dist;
+    S.cam.x -= (mx - S.pan.sx) / S.cam.scale;
+    S.cam.y -= (my - S.pan.sy) / S.cam.scale;
+    S.pan.sx = mx; S.pan.sy = my;
+    return;
+  }
+
+  if (S.pan){
+    const dx = e.clientX - S.pan.sx, dy = e.clientY - S.pan.sy;
+    S.pan.moved += Math.abs(dx) + Math.abs(dy);
+    S.cam.x = S.pan.cx - dx / S.cam.scale;
+    S.cam.y = S.pan.cy - dy / S.cam.scale;
+    S.follow = false; document.getElementById('optFollow').checked = false;
+  } else if (S.drag){
+    const w = toWorld(e.clientX, e.clientY);
+    S.drag.cx = w.x; S.drag.cy = w.y;
+  }
+});
+
+function endPointer(e){
+  S.pointers.delete(e.pointerId);
+  if (S.pointers.size < 2){
+    S.pinch = 0;
+    // Lifting one finger of a pinch ends the gesture outright; carrying on
+    // with the remaining finger would snap the camera to the stale anchor.
+    if (S.pan && S.pan.touch) S.pan = null;
+  }
+
+  if (S.pan){
+    // A right-click that never moved is a delete gesture.
+    if (S.pan.btn === 2 && S.pan.moved < 6){
+      const w = toWorld(e.clientX, e.clientY);
+      const hit = bodyAt(w.x, w.y);
+      if (hit){
+        spawnBurst(hit.x, hit.y, hit.color, 16, 120);
+        S.bodies.splice(S.bodies.indexOf(hit), 1);
+      }
+    }
+    if (S.pointers.size === 0) S.pan = null;
+    return;
+  }
+
+  if (S.drag){
+    const d = S.drag;
+    S.drag = null;
+    const p = PRESETS[S.preset];
+    const moved = Math.hypot(e.clientX - d.sx, e.clientY - d.sy);
+    // A tap drops a body at rest; a drag flings it along the arrow.
+    const vx = moved < 4 ? 0 : (d.cx - d.x) * CFG.FLING;
+    const vy = moved < 4 ? 0 : (d.cy - d.y) * CFG.FLING;
+    add(d.x, d.y, vx, vy, p);
+  }
+}
+cv.addEventListener('pointerup', endPointer);
+cv.addEventListener('pointercancel', endPointer);
+
+cv.addEventListener('wheel', e => {
+  e.preventDefault();
+  zoomAt(e.clientX, e.clientY, Math.exp(-e.deltaY * 0.0016));
+}, { passive:false });
+
+window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' && e.target.type === 'text') return;
+  const k = e.key.toLowerCase();
+  if (k === ' '){ e.preventDefault(); togglePause(); }
+  else if (k === 'c') clearAll();
+  else if (k === 'r'){ S.cam.x = 0; S.cam.y = 0; S.cam.scale = 1; }
+  else if (k >= '1' && k <= '5'){ S.preset = +k - 1; syncUI(); }
+});
+
+/* ================================== UI ================================== */
+const $ = id => document.getElementById(id);
+const el = {
+  presets:$('presets'), massOut:$('massOut'),
+  timeScale:$('timeScale'), tsOut:$('tsOut'),
+  trailLen:$('trailLen'), trailOut:$('trailOut'),
+  gravity:$('gravity'), gOut:$('gOut'),
+  playBtn:$('playBtn'), clearBtn:$('clearBtn'), resetView:$('resetView'),
+  optMerge:$('optMerge'), optPredict:$('optPredict'), optFollow:$('optFollow'), optGlow:$('optGlow'),
+  sBodies:$('sBodies'), sMass:$('sMass'), sZoom:$('sZoom'), sFps:$('sFps'),
+  paused:$('paused'), controls:$('controls'), burger:$('burger')
+};
+
+PRESETS.forEach((p, i) => {
+  const b = document.createElement('button');
+  b.className = 'chip';
+  b.dataset.i = i;
+  b.innerHTML = `<i class="dot" style="background:${p.color};color:${p.color}"></i><span>${p.name}</span>`;
+  b.addEventListener('click', () => { S.preset = i; syncUI(); });
+  el.presets.appendChild(b);
+});
+
+function fmt(n){
+  if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1) + 'k';
+  return Math.round(n).toString();
+}
+
+function syncUI(){
+  [...el.presets.children].forEach((c, i) => c.classList.toggle('on', i === S.preset));
+  el.massOut.textContent = PRESETS[S.preset].name;
+  el.tsOut.textContent = S.timeScale.toFixed(2) + '×';
+  el.trailOut.textContent = S.trailLen === 0 ? 'off' : S.trailLen;
+  el.gOut.textContent = S.gravityMul.toFixed(2) + '×';
+  el.playBtn.innerHTML = (S.paused ? 'Play' : 'Pause') + ' <kbd>space</kbd>';
+  el.paused.classList.toggle('on', S.paused);
+}
+
+function togglePause(){ S.paused = !S.paused; syncUI(); }
+
+el.timeScale.addEventListener('input', e => { S.timeScale = +e.target.value / 100; syncUI(); });
+el.trailLen.addEventListener('input', e => { S.trailLen = +e.target.value; syncUI(); });
+el.gravity.addEventListener('input', e => { S.gravityMul = +e.target.value / 100; syncUI(); });
+el.playBtn.addEventListener('click', togglePause);
+el.clearBtn.addEventListener('click', clearAll);
+el.resetView.addEventListener('click', () => {
+  S.cam.x = 0; S.cam.y = 0; S.cam.scale = 1;
+  S.follow = false; el.optFollow.checked = false;
+});
+el.optMerge.addEventListener('change', e => S.merge = e.target.checked);
+el.optPredict.addEventListener('change', e => S.predict = e.target.checked);
+el.optFollow.addEventListener('change', e => S.follow = e.target.checked);
+el.optGlow.addEventListener('change', e => { S.glow = e.target.checked; if (!S.glow) S.particles.length = 0; });
+document.querySelectorAll('[data-scn]').forEach(b =>
+  b.addEventListener('click', () => loadScenario(b.dataset.scn)));
+el.burger.addEventListener('click', () => el.controls.classList.toggle('hide'));
+
+/* ============================== main loop ============================== */
+let last = performance.now();
+let acc = 0, statAcc = 0, fpsAcc = 0, fpsN = 0;
+
+function frame(now){
+  requestAnimationFrame(frame);
+  let dt = (now - last) / 1000;
+  last = now;
+  if (dt > CFG.MAX_DT) dt = CFG.MAX_DT;
+  if (dt <= 0) dt = 1 / 60;
+
+  fpsAcc += 1 / dt; fpsN++;
+
+  const scaled = S.paused ? 0 : dt * S.timeScale;
+  if (scaled > 0){
+    acc += scaled;
+    let steps = 0;
+    while (acc >= CFG.H && steps < CFG.MAX_SUB){
+      stepPhysics(CFG.H);
+      acc -= CFG.H;
+      steps++;
+      // Sample trails inside the substep loop, so a high time scale still
+      // draws a smooth curve rather than a chain of straight chords.
+      if (steps % 3 === 0) pushTrails();
+    }
+    if (steps >= CFG.MAX_SUB) acc = 0;   // drop the backlog instead of spiralling
+    pushTrails();
+    stepParticles(scaled);
+    for (const b of S.bodies) if (b.flash > 0) b.flash = Math.max(0, b.flash - dt * 2.2);
+    cullEscapees();
+  }
+
+  if (S.follow && S.bodies.length){
+    const c = barycentre();
+    S.cam.x += (c.x - S.cam.x) * Math.min(1, dt * 4);
+    S.cam.y += (c.y - S.cam.y) * Math.min(1, dt * 4);
+  }
+
+  render(now / 1000);
+
+  statAcc += dt;
+  if (statAcc > 0.25){
+    statAcc = 0;
+    let m = 0;
+    for (const b of S.bodies) m += b.mass;
+    el.sBodies.textContent = S.bodies.length;
+    el.sMass.textContent = fmt(m);
+    el.sZoom.textContent = S.cam.scale.toFixed(2) + '×';
+    el.sFps.textContent = Math.round(fpsAcc / Math.max(1, fpsN));
+    fpsAcc = 0; fpsN = 0;
+  }
+}
+
+syncUI();
+loadScenario('solar');
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
